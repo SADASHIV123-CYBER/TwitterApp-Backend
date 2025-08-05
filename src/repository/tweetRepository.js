@@ -4,7 +4,7 @@ import BadRequestError from "../utils/badRequestError";
 import InternalServerError from "../utils/internalServerError";
 import NotFoundError from "../utils/notFoundError";
 
-async function createTweet({body}) {
+export async function createTweet({body}) {
     try {
         const tweet = await Tweet.create({ body });
         return tweet
@@ -22,7 +22,7 @@ async function createTweet({body}) {
     }
 }
 
-async function getTweets() {
+export async function getTweets() {
     try {
         const tweet = await Tweet.find();
 
@@ -39,11 +39,6 @@ async function getTweets() {
         throw new InternalServerError()
     }
 }
-
-import { Tweet } from "../schema/tweetSchema.js";
-import BadRequestError from "../utils/badRequestError.js";
-import InternalServerError from "../utils/internalServerError.js";
-import NotFoundError from "../utils/notFoundError.js";
 
 export async function getTweetById(tweetId) {
     try {
@@ -64,7 +59,7 @@ export async function getTweetById(tweetId) {
     }
 }
 
-async function deleteTweet(tweetId) {
+export async function deleteTweet(tweetId) {
     try {
         const tweet = await Tweet.findByIdAndDelete(tweetId);
 
@@ -82,7 +77,7 @@ async function deleteTweet(tweetId) {
     }
 }
 
-async function updateTweet(tweetId, body) {
+export async function updateTweet(tweetId, body) {
     try {
         const tweet = await Tweet.findByIdAndUpdate(tweetId, {body}, {new: true}, {runValidators: true});
 
@@ -108,10 +103,3 @@ async function updateTweet(tweetId, body) {
     }
 }
 
-export default {
-    createTweet,
-    getTweets,
-    getTweetById,
-    deleteTweet,
-    updateTweet
-}
