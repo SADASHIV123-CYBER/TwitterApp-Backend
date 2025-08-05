@@ -1,6 +1,7 @@
 import { Tweet } from "../schema/tweetSchema.js";
 
 import BadRequestError from "../utils/badRequestError";
+import handleCommonErrors from "../utils/handleCommonErrors.js";
 import InternalServerError from "../utils/internalServerError";
 import NotFoundError from "../utils/notFoundError";
 
@@ -9,16 +10,18 @@ export async function createTweet({body}) {
         const tweet = await Tweet.create({ body });
         return tweet
     } catch (error) {
-        if(error.name === 'ValidationError') {
-            const errorMessageList = Object.keys(error.errors).map(property => {
-                return error.errors[property].message
-            });
+        // if(error.name === 'ValidationError') {
+        //     const errorMessageList = Object.keys(error.errors).map(property => {
+        //         return error.errors[property].message
+        //     });
 
-            throw new BadRequestError(errorMessageList)
-        }
+        //     throw new BadRequestError(errorMessageList)
+        // }
 
-        console.log(error);
-        throw new InternalServerError();
+        handleCommonErrors(error)
+
+        // console.log(error);
+        // throw new InternalServerError();
     }
 }
 
@@ -35,8 +38,10 @@ export async function getTweets() {
             throw error
         }
 
-        console.log(error);
-        throw new InternalServerError()
+        handleCommonErrors(error)
+
+        // console.log(error);
+        // throw new InternalServerError()
     }
 }
 
@@ -50,12 +55,14 @@ export async function getTweetById(tweetId) {
 
         return tweet;
     } catch (error) {
-        if (error.name === "CastError") {
-            throw new BadRequestError(`Invalid tweet ID: ${tweetId}`);
-        }
+        // if (error.name === "CastError") {
+        //     throw new BadRequestError(`Invalid tweet ID: ${tweetId}`);
+        // }
 
-        console.error("Unexpected error:", error);
-        throw new InternalServerError("Failed to get tweet");
+        // console.error("Unexpected error:", error);
+        // throw new InternalServerError("Failed to get tweet");
+
+        handleCommonErrors(error)
     }
 }
 
@@ -68,38 +75,42 @@ export async function deleteTweet(tweetId) {
         }
         return tweet
     } catch (error) {
-        if(error.name === "CastError") {
-            throw new BadRequestError(`Invalid tweet ID ${tweetId}`)
-        }
+        // if(error.name === "CastError") {
+        //     throw new BadRequestError(`Invalid tweet ID ${tweetId}`)
+        // }
 
-        console.log(error);
-        throw new InternalServerError()
+        // console.log(error);
+        // throw new InternalServerError()
+
+        handleCommonErrors(error)
     }
 }
 
 export async function updateTweet(tweetId, body) {
     try {
-        const tweet = await Tweet.findByIdAndUpdate(tweetId, {body}, {new: true}, {runValidators: true});
+        const tweet = await Tweet.findByIdAndUpdate(tweetId, {body}, {new: true, runValidators: true},);
 
         if(!tweet) {
             throw new NotFoundError('Tweet');
         }
         return tweet
     } catch (error) {
-        if(error.name === 'CastError') {
-            throw new BadRequestError(`Invalid tweet ID ${tweetId}`);
-        }
+        // if(error.name === 'CastError') {
+        //     throw new BadRequestError(`Invalid tweet ID ${tweetId}`);
+        // }
 
-        if(error.name === 'ValidationError') {
-            const errorMessageList = Object.keys(error.errors).map(property => {
-                return error.errors[property].message;
-            })
+        // if(error.name === 'ValidationError') {
+        //     const errorMessageList = Object.keys(error.errors).map(property => {
+        //         return error.errors[property].message;
+        //     })
 
-            throw new BadRequestError(errorMessageList)
-        }
+        //     throw new BadRequestError(errorMessageList)
+        // }
 
-        console.log(error);
-        throw new InternalServerError()
+        // console.log(error);
+        // throw new InternalServerError()
+
+        handleCommonErrors(error)
     }
 }
 
