@@ -6,9 +6,9 @@ import {
     updateTweet as updateTweetRepository
 } from '../repository/tweetRepository.js';
 
-import InternalServerError from '../utils/internalServerError.js';
-import NotFoundError from '../utils/notFoundError.js';
-import handleCommonErrors from '../utils/handleCommonErrors.js';
+import InternalServerError from '../utils/errors/internalServerError.js';
+import NotFoundError from '../utils/errors/notFoundError.js';
+import handleCommonErrors from '../utils/errors/handleCommonErrors.js';
 
 export async function createTweet({ body }) {
     try {
