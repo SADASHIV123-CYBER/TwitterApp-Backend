@@ -14,3 +14,5 @@ router.get('/:id', (req, res) => {
         id: req.params.id
     })
 })
+
+export default router

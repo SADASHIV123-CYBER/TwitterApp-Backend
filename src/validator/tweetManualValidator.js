@@ -1,5 +1,6 @@
 import mongoose, { Mongoose } from "mongoose";
 import BadRequestError from "../utils/errors/badRequestError.js"
+import logger from "../utils/helpers/logger.js";
 
 export const createManualTweetValidater = (req, res, next) => {
     const tweetBody = req.body.tweet;
@@ -17,6 +18,7 @@ export const createManualTweetValidater = (req, res, next) => {
 
 export const getTweetByIdManualValidator = (req, res, next) => {
     const tweetId = req.params.id
+    logger.info("this is id" ,tweetId)
 
     if(!tweetId || tweetId.trim() === "") {
         throw new BadRequestError("Tweet id is required")

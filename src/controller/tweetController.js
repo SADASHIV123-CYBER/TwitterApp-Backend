@@ -16,6 +16,8 @@ import logger from "../utils/helpers/logger.js";
 // CREATE TWEET
 export const createTweet = async (req, res) => {
   try {
+    logger.info("CREATE TWEET - req.body:", req.body);
+
     const tweet = await createTweetService({ body: req.body.tweet });
 
     return successResponce(res, tweet, StatusCodes.CREATED, "Tweet created successfully");
@@ -28,6 +30,8 @@ export const createTweet = async (req, res) => {
 // GET ALL TWEETS
 export const getTweets = async (req, res) => {
   try {
+    logger.info("GET TWEETS - req.body:", req.body);
+
     const tweets = await getTweetsService();
 
     return successResponce(res, tweets, StatusCodes.OK, "Tweets fetched successfully");
@@ -40,6 +44,8 @@ export const getTweets = async (req, res) => {
 // GET TWEET BY ID
 export const getTweetById = async (req, res) => {
   try {
+    logger.info("GET TWEET BY ID - req.body:", req.body);
+
     const tweet = await getTweetByIdService(req.params.id);
 
     if (!tweet) {
@@ -56,6 +62,8 @@ export const getTweetById = async (req, res) => {
 // DELETE TWEET
 export const deleteTweet = async (req, res) => {
   try {
+    logger.info("DELETE TWEET - req.body:", req.body);
+
     const deletedTweet = await deleteTweetService(req.params.id);
 
     if (!deletedTweet) {
@@ -72,11 +80,15 @@ export const deleteTweet = async (req, res) => {
 // UPDATE TWEET
 export const updateTweet = async (req, res) => {
   try {
+    logger.info("UPDATE TWEET - req.body:", req.body);
+
     const updatedTweet = await updateTweetService(req.params.id, req.body.tweet);
 
     if (!updatedTweet) {
       throw new NotFoundError("Tweet not found");
     }
+
+    
 
     return successResponce(res, updatedTweet, StatusCodes.OK, "Tweet updated successfully");
   } catch (error) {

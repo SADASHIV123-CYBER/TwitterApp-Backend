@@ -1,8 +1,9 @@
-const express = require('express');
-const serverConfig = require('./src/config/serverConfig');
-const connectDB = require('./src/config/dbConfig');
-const morgan = require('morgan');
-
+import express from 'express'
+import serverConfig from './src/config/serverConfig.js';
+// import connectDB from './src/config/dbConfig.js';
+import connectDB from './src/config/dbConfig.js'
+import morgan from 'morgan';
+import apiRouter from './src/routes/apiRouter.js'
 const app = express();
 
 // app.use(cookieParser())
@@ -10,6 +11,9 @@ app.use(express.json())
 app.use(express.text())
 app.use(express.urlencoded( {extended: true} ));
 app.use(morgan('dev'))
+
+
+app.use('/api', apiRouter)
 
 app.listen(serverConfig.PORT, async () => {
     await connectDB();
