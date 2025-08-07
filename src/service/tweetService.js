@@ -9,9 +9,21 @@ import {
 import InternalServerError from '../utils/errors/internalServerError.js';
 import NotFoundError from '../utils/errors/notFoundError.js';
 import handleCommonErrors from '../utils/errors/handleCommonErrors.js';
+import { Filter } from 'bad-words';
+import logger from '../utils/helpers/logger.js';
+import BadRequestError from '../utils/errors/badRequestError.js';
 
 export async function createTweet({ body }) {
     try {
+
+        const filter = new Filter;
+
+        if(filter.isProfane(body)) {
+            logger.warn(`Profanity detected in input: ${body}`);
+            logger.info(`Cleaned version ${filter.clean(body)}`)
+
+            throw new BadRequestError('Tweet contains blocked words')
+        }
         const tweet = await createTweetRepository({ body });
         return tweet;
     } catch (error) {
