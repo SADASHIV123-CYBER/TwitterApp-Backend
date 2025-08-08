@@ -1,6 +1,6 @@
 import { StatusCodes } from "http-status-codes";
 
-// ✅ SUCCESS RESPONSE
+
 export const successResponce = (res, data, statusCode = StatusCodes.OK, message = "Success") => {
     return res.status(statusCode).json({
         success: true,
@@ -9,7 +9,7 @@ export const successResponce = (res, data, statusCode = StatusCodes.OK, message 
     });
 };
 
-// ✅ ERROR RESPONSE
+
 export const errorResponce = (res, error) => {
     console.log("Error:", error);
 

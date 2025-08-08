@@ -18,7 +18,9 @@ export async function createTweet({body}) {
         //     throw new BadRequestError(errorMessageList)
         // }
 
-        handleCommonErrors(error)
+        handleCommonErrors(error);
+
+        throw error
 
         // console.log(error);
         // throw new InternalServerError();
@@ -38,7 +40,8 @@ export async function getTweets() {
             throw error
         }
 
-        handleCommonErrors(error)
+        handleCommonErrors(error);
+        throw error
 
         // console.log(error);
         // throw new InternalServerError()
@@ -62,7 +65,8 @@ export async function getTweetById(tweetId) {
         // console.error("Unexpected error:", error);
         // throw new InternalServerError("Failed to get tweet");
 
-        handleCommonErrors(error)
+        handleCommonErrors(error);
+        throw error
     }
 }
 
@@ -82,7 +86,8 @@ export async function deleteTweet(tweetId) {
         // console.log(error);
         // throw new InternalServerError()
 
-        handleCommonErrors(error)
+        handleCommonErrors(error);
+        throw error
     }
 }
 
@@ -111,6 +116,7 @@ export async function updateTweet(tweetId, body) {
         // throw new InternalServerError()
 
         handleCommonErrors(error)
+        throw error
     }
 }
 
