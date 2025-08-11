@@ -99,6 +99,8 @@ async function registerUser(userDetails) {
             profilePicture = cloudinaryResponse.secure_url;
         }
 
+        console.log('Profile picture: --->', profilePicture);
+        
         // --- 3. Create the new user ---
         const {
             fullName,

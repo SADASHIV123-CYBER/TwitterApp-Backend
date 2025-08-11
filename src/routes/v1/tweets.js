@@ -4,6 +4,7 @@ import { getTweetByIdManualValidator } from '../../validator/tweetManualValidato
 import cloudinaryUploader from '../../middlewares/multerUploader.js';
 import { validate } from '../../validator/zodValidator.js';
 import { tweetZodSchema } from '../../validator/schema/tweetZodSchema.js';
+import { isLoggedIn } from '../../middlewares/authMiddlewares.js';
 
 const router = express.Router();
 
@@ -11,15 +12,16 @@ router.get('/', getTweets);
 
 router.post(
   '/',
+  isLoggedIn,
   cloudinaryUploader('tweets').single('tweetImage'),
   validate(tweetZodSchema),
   createTweet
 );
 
-router.delete('/:id', getTweetByIdManualValidator, deleteTweet);
+router.delete('/:id', isLoggedIn, getTweetByIdManualValidator, deleteTweet);
 
-router.get('/:id', getTweetByIdManualValidator, getTweetById);
+router.get('/:id', isLoggedIn, getTweetByIdManualValidator, getTweetById);
 
-router.put('/:id',getTweetByIdManualValidator, updateTweet )
+router.put('/:id', isLoggedIn, getTweetByIdManualValidator, updateTweet )
 
 export default router;

@@ -1,9 +1,9 @@
 import AppError from "./appError.js";
 
-class unauthorisedError extends AppError {
-    constructor() {
-        super(`User is not authorised properly`, 401)
+class UnauthorisedError extends AppError {
+    constructor(message = "User is not authorised properly") {
+        super(message, 401);
     }
 }
 
-export default unauthorisedError
+export default UnauthorisedError;

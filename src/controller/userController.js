@@ -5,7 +5,11 @@ import logger from "../utils/helpers/logger.js";
 
 async function createUser(req, res) {
     try {
-        const user = await registerUser(req.body);
+        const userData = {
+            ...req.body,
+            imagePath: req.file?.path 
+        }
+        const user = await registerUser(userData);
 
         return successResponce(res, user, StatusCodes.CREATED, "User created successfully")
     } catch (error) {

@@ -6,6 +6,6 @@ import cloudinaryUploader from '../../middlewares/multerUploader.js';
 
 const router = express.Router();
 
-router.post('/', validate(userZodSchema), cloudinaryUploader('profile').single('profilePicture'), createUser);
+router.post('/', cloudinaryUploader('profile').single('profilePicture'), validate(userZodSchema), createUser);
 
 export default router
