@@ -4,26 +4,18 @@ import BadRequestError from "../utils/errors/badRequestError.js";
 import handleCommonErrors from "../utils/errors/handleCommonErrors.js";
 import InternalServerError from "../utils/errors/internalServerError.js";
 import NotFoundError from "../utils/errors/notFoundError.js";
+import logger from '../utils/helpers/logger.js'
 
-export async function createTweet({body}) {
+export async function createTweet({ body, author }) {
     try {
-        const tweet = await Tweet.create({ body });
-        return tweet
+        const tweet = await Tweet.create({ 
+            body,
+            author    // now defined because it comes from the argument
+        });
+        return tweet;
     } catch (error) {
-        // if(error.name === 'ValidationError') {
-        //     const errorMessageList = Object.keys(error.errors).map(property => {
-        //         return error.errors[property].message
-        //     });
-
-        //     throw new BadRequestError(errorMessageList)
-        // }
-
         handleCommonErrors(error);
-
-        throw error
-
-        // console.log(error);
-        // throw new InternalServerError();
+        throw error;
     }
 }
 
@@ -120,3 +112,65 @@ export async function updateTweet(tweetId, body) {
     }
 }
 
+export async function likeTweet(tweetId, userId) {
+    try {
+        const tweet = await Tweet.findById(tweetId);
+
+        if(!tweet) {
+            throw new NotFoundError("Tweet")
+        };
+
+        if(tweet.likes.includes(userId)) {
+            throw new BadRequestError("You have already liked this tweet")
+        }
+
+        tweet.likes.push(userId);
+        await tweet.save();
+
+        await tweet.populate("likes", "userName");
+        return tweet
+    } catch (error) {
+        if(error instanceof NotFoundError ||error instanceof BadRequestError) {
+            throw error
+        }
+        
+        logger.error(error)
+        
+        // throw new InternalServerError()
+
+        handleCommonErrors(error)
+    }
+}
+
+export async function unlikeTweet(tweetId, userId) {
+    try {
+        const tweet = await Tweet.findById(tweetId);
+
+        if(!tweet) {
+            throw new NotFoundError("Tweet")
+        }
+
+        if(!tweet.likes.includes(userId)) {
+            throw new BadRequestError("You have not liked this tweet")
+        }
+
+        tweet.likes = tweet.likes.filter(
+            id => id.toString() !== userId.toString()
+        )
+
+        await tweet.save();
+        return tweet
+    } catch (error) {
+
+        if(error instanceof NotFoundError || error instanceof BadRequestError) {
+            throw error
+        }
+
+        logger.error(error)
+
+        // throw new InternalServerError()
+
+        handleCommonErrors(error)
+        
+    }
+}

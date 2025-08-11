@@ -5,7 +5,9 @@ import {
   getTweets as getTweetsService,
   getTweetById as getTweetByIdService,
   deleteTweet as deleteTweetService,
-  updateTweet as updateTweetService
+  updateTweet as updateTweetService,
+  likeTweetService,
+  unlikeTweetService
 } from "../service/tweetService.js";
 
 import { errorResponce, successResponce } from "../utils/helpers/responses.js";
@@ -17,8 +19,10 @@ import logger from "../utils/helpers/logger.js";
 export const createTweet = async (req, res) => {
   try {
     logger.info("CREATE TWEET - req.body:", req.body);
+    logger.info("Loged in user id", req.user?. id)
+    console.log("Loged in user id", req.user?. id)
 
-    const tweet = await createTweetService({ body: req.body.tweet });
+    const tweet = await createTweetService({ body: req.body.tweet, author: req.user.id});
 
     return successResponce(res, tweet, StatusCodes.CREATED, "Tweet created successfully");
   } catch (error) {
@@ -96,3 +100,40 @@ export const updateTweet = async (req, res) => {
     return errorResponce(res, error);
   }
 };
+
+export const likeTweetController = async (req, res) => {
+
+  try {
+    const {id: tweetId} = req.params;
+    const userId = req.user.id
+
+    const likeTweet = await likeTweetService(tweetId, userId);
+
+  return successResponce(res, likeTweet, StatusCodes.OK, `Liked tweet${tweetId}`)
+
+  } catch (error) {
+    logger.error(error)
+    return errorResponce(res, error)  
+  }
+
+
+}
+
+export const unlikeTweetController = async (req, res) => {
+
+  try {
+    const {id: tweetId} = req.params;
+    const userId = req.user.id
+
+    const unlikeTweet = await unlikeTweetService(tweetId, userId);
+
+  return successResponce(res, unlikeTweet, StatusCodes.OK, `unliked tweet ${tweetId}`)
+
+  } catch (error) {
+    logger.error(error)
+    return errorResponce(res, error)  
+  }
+
+
+}
+

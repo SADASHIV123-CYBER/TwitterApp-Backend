@@ -13,22 +13,50 @@ import { Filter } from 'bad-words';
 import logger from '../utils/helpers/logger.js';
 import BadRequestError from '../utils/errors/badRequestError.js';
 
-export async function createTweet({ body }) {
-    try {
+import * as tweetRepository from '../repository/tweetRepository.js'
 
-        const filter = new Filter;
+// export async function createTweet({ body }) {
+//     try {
 
-        if(filter.isProfane(body)) {
-            logger.warn(`Profanity detected in input: ${body}`);
-            logger.info(`Cleaned version ${filter.clean(body)}`)
+//         const filter = new Filter();
 
-            throw new BadRequestError('Tweet contains blocked words')
-        }
-        const tweet = await createTweetRepository({ body });
-        return tweet;
-    } catch (error) {
-        handleCommonErrors(error);
-    }   
+//         if(filter.isProfane(body)) {
+//             logger.warn(`Profanity detected in input: ${body}`);
+//             logger.info(`Cleaned version ${filter.clean(body)}`)
+
+//             throw new BadRequestError('Tweet contains blocked words')
+//         }
+//         const tweet = await createTweetRepository({ body, author });
+//         return tweet;
+//     } catch (error) {
+//         if(error instanceof BadRequestError) {
+//             throw error
+//         }
+//         logger.error(error)
+//         handleCommonErrors(error);
+//     }   
+// }
+
+export async function createTweet({ body, author }) {
+  try {
+    const filter = new Filter();
+
+    if(filter.isProfane(body)) {
+      logger.warn(`Profanity detected in input: ${body}`);
+      logger.info(`Cleaned version ${filter.clean(body)}`);
+      throw new BadRequestError('Tweet contains blocked words');
+    }
+
+    const tweet = await createTweetRepository({ body, author });
+    return tweet;
+    
+  } catch (error) {
+    if(error instanceof BadRequestError) {
+      throw error;
+    }
+    logger.error(error);
+    handleCommonErrors(error);
+  }
 }
 
 export async function getTweets() {
@@ -55,6 +83,8 @@ export async function getTweetById(id) {
             throw error;
         }
 
+        logger.error(error)
+
         handleCommonErrors(error);
     }
 }
@@ -73,6 +103,8 @@ export async function deleteTweet(id) {
             throw error;
         }
 
+        logger.error(error)
+
         handleCommonErrors(error);
     }
 }
@@ -90,7 +122,41 @@ export async function updateTweet(id, body) {
         if (error instanceof NotFoundError) {
             throw error;
         }
+        
+        logger.error(error)
 
         handleCommonErrors(error);
     }
 }
+
+export async function likeTweetService(tweetId, userId) {
+    try {
+        return await tweetRepository.likeTweet(tweetId, userId);
+
+    } catch (error) {
+        if(error instanceof NotFoundError || error instanceof BadRequestError) {
+            throw error
+        }
+
+        logger.error(error);
+
+        handleCommonErrors(error)
+
+    }
+};
+
+export async function unlikeTweetService(tweetId, userId) {
+    try {
+        return await tweetRepository.unlikeTweet(tweetId, userId);
+    } catch (error) {
+        if(error instanceof NotFoundError || error instanceof BadRequestError) {
+            throw error
+        }
+
+        logger.error(error)
+
+        handleCommonErrors(error)
+    }
+}
+
+
