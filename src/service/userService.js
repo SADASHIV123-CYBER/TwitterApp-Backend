@@ -86,7 +86,8 @@ async function registerUser(userDetails) {
         // --- 1. Check if user already exists ---
         const existingUser = await findUser({
             email: userDetails.email,
-            userName: userDetails.userName
+            userName: userDetails.userName,
+            mobileNumber: userDetails.mobileNumber
         });
 
         if (existingUser) {
@@ -109,7 +110,8 @@ async function registerUser(userDetails) {
             password,
             role,
             isVerified,
-            displayName
+            displayName,
+            mobileNumber
         } = userDetails;
 
         const newUser = await createUser({
@@ -120,9 +122,13 @@ async function registerUser(userDetails) {
             profilePicture,
             role,
             isVerified: isVerified ?? false,
-            displayName
+            displayName,
+            mobileNumber
         });
 
+
+
+        
         return newUser;
 
     } catch (error) {

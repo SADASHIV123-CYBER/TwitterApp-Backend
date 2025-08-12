@@ -47,6 +47,15 @@ const userSchema = new mongoose.Schema({
         default: false
     },
 
+    mobileNumber: {
+        type: String,
+        unique: true,
+        sparse: true,
+        trim: true,
+        match: [/^[6-9]\d{9}$/, 'Please provide a valid 10-digit Indian mobile number'],
+    },
+
+
     displayName: {
         type: String,
         default: function () {

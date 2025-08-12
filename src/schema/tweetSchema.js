@@ -9,13 +9,13 @@ const TweetSchema = new mongoose.Schema({
   },
   author: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "USER",
+    ref: "User",
     required: true
   },
   likes: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "USER"
+      ref: "User"
     }
   ]
 }, {

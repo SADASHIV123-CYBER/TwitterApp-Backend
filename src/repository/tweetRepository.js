@@ -124,11 +124,16 @@ export async function likeTweet(tweetId, userId) {
             throw new BadRequestError("You have already liked this tweet")
         }
 
-        tweet.likes.push(userId);
-        await tweet.save();
+        // tweet.likes.push(userId);
+        // await tweet.save();
 
-        await tweet.populate("likes", "userName");
-        return tweet
+        const updateTweet = await Tweet.findByIdAndUpdate(tweetId, 
+            {$addToSet: {likes: userId}},
+            {new: true}
+        )
+
+        await updateTweet.populate("likes", "displayName");
+        return updateTweet
     } catch (error) {
         if(error instanceof NotFoundError ||error instanceof BadRequestError) {
             throw error
@@ -154,12 +159,19 @@ export async function unlikeTweet(tweetId, userId) {
             throw new BadRequestError("You have not liked this tweet")
         }
 
-        tweet.likes = tweet.likes.filter(
-            id => id.toString() !== userId.toString()
+        // tweet.likes = tweet.likes.filter(
+        //     id => id.toString() !== userId.toString()
+        // )
+
+        // await tweet.save();
+
+
+        const updateTweet = await Tweet.findByIdAndUpdate(tweetId, 
+            {$pull: {likes: userId}},
+            {new: true}
         )
 
-        await tweet.save();
-        return tweet
+        return updateTweet
     } catch (error) {
 
         if(error instanceof NotFoundError || error instanceof BadRequestError) {
