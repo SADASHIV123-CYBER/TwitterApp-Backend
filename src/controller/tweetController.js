@@ -7,7 +7,9 @@ import {
   deleteTweet as deleteTweetService,
   updateTweet as updateTweetService,
   likeTweetService,
-  unlikeTweetService
+  unlikeTweetService,
+  addCommentService,
+  deleteCommentService
 } from "../service/tweetService.js";
 
 import { errorResponce, successResponce } from "../utils/helpers/responses.js";
@@ -137,3 +139,51 @@ export const unlikeTweetController = async (req, res) => {
 
 }
 
+export const addCommentController = async(req, res) => {
+  try {
+    const {id: tweetId} = req.params;
+    const userId = req.user.id;
+    const {text} = req.body
+
+    const addComment = await addCommentService(tweetId, userId, text);
+
+    return successResponce(res, addComment, StatusCodes.OK, `Successfully posted comment on tweet ${tweetId}`)
+  } catch (error) {
+    logger.error(error);
+    return errorResponce(res, error)
+  }
+};
+
+// export const deleteCommentController = async(req, res) =>{
+//   try {
+//     const {tweetId, commentId} = req.params;
+//     logger.info("this is tweet id --->", tweetId)
+//     const userId = req.user.id;
+
+//     const deleteComment = await deleteCommentService(tweetId, commentId, userId);
+
+//     return successResponce(res, deleteComment, StatusCodes.OK, `Successfully deleted comment from tweet ${tweetId}`)
+//   } catch (error) {
+//     logger.error(error);
+//     return errorResponce(res, error)
+//   }
+// }
+
+export const deleteCommentController = async (req, res) => {
+  try {
+    const { tweetId, commentId } = req.params;
+    const userId = req.user.id;
+
+    const deleteComment = await deleteCommentService(tweetId, commentId, userId);
+
+    return successResponce(
+      res,
+      deleteComment,
+      StatusCodes.OK,
+      `Successfully deleted comment from tweet ${tweetId}`
+    );
+  } catch (error) {
+    logger.error(error);
+    return errorResponce(res, error);
+  }
+};

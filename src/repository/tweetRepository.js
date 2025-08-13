@@ -2,8 +2,9 @@ import { Tweet } from "../schema/tweetSchema.js";
 
 import BadRequestError from "../utils/errors/badRequestError.js";
 import handleCommonErrors from "../utils/errors/handleCommonErrors.js";
-import InternalServerError from "../utils/errors/internalServerError.js";
+// import InternalServerError from "../utils/errors/internalServerError.js";
 import NotFoundError from "../utils/errors/notFoundError.js";
+import UnauthorisedError from "../utils/errors/unauthorisedError.js";
 import logger from '../utils/helpers/logger.js'
 
 export async function createTweet({ body, author }) {
@@ -184,5 +185,76 @@ export async function unlikeTweet(tweetId, userId) {
 
         handleCommonErrors(error)
         
+    }
+}
+
+export async function addComment(tweetId, userId, text) {
+    try {
+        if (!text?.trim()) {
+            throw new BadRequestError("Comment text is required");
+        }
+
+        const newComment = {
+            user: userId,
+            text: text.trim(),
+            createdAt: new Date()
+        };
+
+        const updatedTweet = await Tweet.findByIdAndUpdate(
+            tweetId,
+            { $push: { comments: newComment } },
+            { new: true, runValidators: true }
+        ).populate("comments.user", "displayName");
+
+        if (!updatedTweet) {
+            throw new NotFoundError("Tweet");
+        }
+
+        return updatedTweet;
+    } catch (error) {
+        if (error instanceof NotFoundError || error instanceof BadRequestError) {
+            throw error;
+        }
+        logger.error(error);
+        handleCommonErrors(error);
+        throw error;
+    }
+}
+
+export async function deleteComment(tweetId, commentId, userId) {
+    try {
+        const tweet = await Tweet.findById(tweetId)
+
+        if(!tweet) {
+            throw new NotFoundError('Tweet')
+        }
+
+        const comment = tweet.comments.id(commentId);
+
+        if(!comment) {
+            throw new NotFoundError('Comment')
+        }
+
+        if(comment.user.toString() !== userId && tweet.author.toString() !== userId) {
+            throw new UnauthorisedError();
+        }
+
+        await Tweet.findByIdAndUpdate(
+            tweetId,
+            {$pull: {comments: {_id: commentId}}},
+            {new: true, runValidators: true}
+        );
+
+        return {message: "comment deleted successfully"}
+    } catch (error) {
+        if(error instanceof NotFoundError || error instanceof BadRequestError || error instanceof UnauthorisedError) {
+            throw error
+        };
+
+        logger.error(error);
+
+        handleCommonErrors(error);
+
+        throw error
     }
 }

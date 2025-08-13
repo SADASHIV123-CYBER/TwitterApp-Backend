@@ -16,18 +16,20 @@ export const createManualTweetValidater = (req, res, next) => {
     next()
 }
 
+
 export const getTweetByIdManualValidator = (req, res, next) => {
-    const tweetId = req.params.id
-    logger.info("this is id" ,tweetId)
+    const tweetId = req.params.id || req.params.tweetId;
+    logger.info("this is id", tweetId);
 
-    if(!tweetId || tweetId.trim() === "") {
-        throw new BadRequestError("Tweet id is required")
+    if (!tweetId || tweetId.trim() === "") {
+        throw new BadRequestError("Tweet id is required");
     }
 
-    if(!mongoose.Types.ObjectId.isValid(tweetId)) {
-        throw new BadRequestError("Invalid tweet id")
+    if (!mongoose.Types.ObjectId.isValid(tweetId)) {
+        throw new BadRequestError("Invalid tweet id");
     }
 
+    req.params.tweetId = tweetId;
 
-    next()
-}
+    next();
+};

@@ -3,7 +3,9 @@ import {
     getTweets as getTweetsRepository,
     getTweetById as getTweetByIdRepository,
     deleteTweet as deleteTweetRepository,
-    updateTweet as updateTweetRepository
+    updateTweet as updateTweetRepository,
+    // addComment as addCommentRepository,
+    // deleteComment as deleteCommentRepository
 } from '../repository/tweetRepository.js';
 
 import InternalServerError from '../utils/errors/internalServerError.js';
@@ -14,28 +16,7 @@ import logger from '../utils/helpers/logger.js';
 import BadRequestError from '../utils/errors/badRequestError.js';
 
 import * as tweetRepository from '../repository/tweetRepository.js'
-
-// export async function createTweet({ body }) {
-//     try {
-
-//         const filter = new Filter();
-
-//         if(filter.isProfane(body)) {
-//             logger.warn(`Profanity detected in input: ${body}`);
-//             logger.info(`Cleaned version ${filter.clean(body)}`)
-
-//             throw new BadRequestError('Tweet contains blocked words')
-//         }
-//         const tweet = await createTweetRepository({ body, author });
-//         return tweet;
-//     } catch (error) {
-//         if(error instanceof BadRequestError) {
-//             throw error
-//         }
-//         logger.error(error)
-//         handleCommonErrors(error);
-//     }   
-// }
+import UnauthorisedError from '../utils/errors/unauthorisedError.js';
 
 export async function createTweet({ body, author }) {
   try {
@@ -158,5 +139,38 @@ export async function unlikeTweetService(tweetId, userId) {
         handleCommonErrors(error)
     }
 }
+
+export async function addCommentService(tweetId, userId, text) {
+    try {
+        return await tweetRepository.addComment(tweetId, userId, text);
+    } catch (error) {
+        if(error instanceof NotFoundError || error instanceof BadRequestError || error instanceof UnauthorisedError) {
+            throw error;
+        }
+
+        logger.error(error);
+
+        handleCommonErrors(error);
+
+        throw error
+    }
+}
+
+export async function deleteCommentService(tweetId, commentId, userId) {
+    try {
+        return await tweetRepository.deleteComment(tweetId, commentId, userId);
+    } catch (error) {
+        if(error instanceof NotFoundError || error instanceof BadRequestError || error instanceof UnauthorisedError) {
+            throw error
+        }
+
+        logger.error(error)
+
+        handleCommonErrors(error);
+        
+        throw error
+    }
+}
+
 
 
