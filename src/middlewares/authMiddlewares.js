@@ -5,6 +5,7 @@ import serverConfig from '../config/serverConfig.js'
 import UnauthorisedError from "../utils/errors/unauthorisedError.js";
 import logger from "../utils/helpers/logger.js";
 import InternalServerError from "../utils/errors/internalServerError.js";
+import User from "../schema/userSchema.js";
 
 export async function isLoggedIn(req, res, next) {
     const token = req.cookies["authToken"];
@@ -20,15 +21,29 @@ export async function isLoggedIn(req, res, next) {
         //     throw new UnauthorisedError()
         // }
 
-        req.user = {
-            email: decode.email,
-            id: decode.id,
-            role: decode.role
+        const user = await User.findById(decode.id)
+
+        if(!user) {
+            throw new UnauthorisedError()
         }
+
+
+        // req.user = {
+        //     email: decode.email,
+        //     id: decode.id,
+        //     role: decode.role
+        // }
+
+        req.user = user;
+
 
         next()
     } catch (error) {
-        logger.error(error);
+        logger.error("auth error ---->", error);
+
+        if(error.name === "JsonWebTokenError" || error.name === "TokenExpiredError") {
+            return errorResponce(res, new UnauthorisedError("Invalid or expired token"));
+        }
         return errorResponce(res, new InternalServerError())
     }
 }
@@ -41,7 +56,7 @@ export async function isAdmin(req, res, next) {
             return errorResponce(res, new UnauthorisedError())
         }
 
-        if(loggedInUser.role === "ADMIN") {
+        if(loggedInUser.role === "Admin") {
             return next();
         }
 
@@ -53,6 +68,6 @@ export async function isAdmin(req, res, next) {
     } catch (error) {
         logger.error(error);
 
-        return errorResponce(res, new InternalServerError())
+        return errorResponce(res, new InternalServerError());
     }
 }

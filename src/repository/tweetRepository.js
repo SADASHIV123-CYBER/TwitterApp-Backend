@@ -86,27 +86,14 @@ export async function deleteTweet(tweetId) {
 
 export async function updateTweet(tweetId, body) {
     try {
-        const tweet = await Tweet.findByIdAndUpdate(tweetId, {body}, {new: true, runValidators: true},);
-
+        logger.info("Updating tweetId:", tweetId, "with body:", body);
+        const tweet = await Tweet.findByIdAndUpdate(tweetId, {body: body}, {new: true, runValidators: true},);
+        logger.info("Updated tweetId:", tweetId, "with body:", body);
         if(!tweet) {
             throw new NotFoundError('Tweet');
         }
         return tweet
     } catch (error) {
-        // if(error.name === 'CastError') {
-        //     throw new BadRequestError(`Invalid tweet ID ${tweetId}`);
-        // }
-
-        // if(error.name === 'ValidationError') {
-        //     const errorMessageList = Object.keys(error.errors).map(property => {
-        //         return error.errors[property].message;
-        //     })
-
-        //     throw new BadRequestError(errorMessageList)
-        // }
-
-        // console.log(error);
-        // throw new InternalServerError()
 
         handleCommonErrors(error)
         throw error
@@ -136,7 +123,7 @@ export async function likeTweet(tweetId, userId) {
         await updateTweet.populate("likes", "displayName");
         return updateTweet
     } catch (error) {
-        if(error instanceof NotFoundError ||error instanceof BadRequestError) {
+        if(error instanceof NotFoundError) {
             throw error
         }
         
@@ -175,7 +162,7 @@ export async function unlikeTweet(tweetId, userId) {
         return updateTweet
     } catch (error) {
 
-        if(error instanceof NotFoundError || error instanceof BadRequestError) {
+        if(error instanceof NotFoundError ) {
             throw error
         }
 
@@ -221,40 +208,199 @@ export async function addComment(tweetId, userId, text) {
     }
 }
 
-export async function deleteComment(tweetId, commentId, userId) {
+// export async function deleteComment(tweetId, commentId, userId) {
+//     try {
+//         const tweet = await Tweet.findById(tweetId)
+
+//         if(!tweet) {
+//             throw new NotFoundError('Tweet')
+//         }
+
+//         const comment = tweet.comments.id(commentId);
+
+//         if(!comment) {
+//             throw new NotFoundError('Comment')
+//         }
+
+//         if(comment.user.toString() !== userId && tweet.author.toString() !== userId) {
+//             throw new UnauthorisedError();
+//         }
+
+//         await Tweet.findByIdAndUpdate(
+//             tweetId,
+//             {$pull: {comments: {_id: commentId}}},
+//             {new: true, runValidators: true}
+//         );
+
+//         return {message: "comment deleted successfully"}
+//     } catch (error) {
+//         if(error instanceof NotFoundError || error instanceof UnauthorisedError) {
+//             throw error
+//         };
+
+//         logger.error(error);
+
+//         handleCommonErrors(error);
+
+//         throw error
+//     }
+// }
+
+export async function updateComment(tweetId, commentId, body) {
     try {
-        const tweet = await Tweet.findById(tweetId)
+        const tweet = await Tweet.findById(tweetId);
 
         if(!tweet) {
             throw new NotFoundError('Tweet')
-        }
+        };
 
         const comment = tweet.comments.id(commentId);
 
         if(!comment) {
             throw new NotFoundError('Comment')
-        }
+        };
 
-        if(comment.user.toString() !== userId && tweet.author.toString() !== userId) {
-            throw new UnauthorisedError();
-        }
+        comment.text = body.text
 
-        await Tweet.findByIdAndUpdate(
-            tweetId,
-            {$pull: {comments: {_id: commentId}}},
-            {new: true, runValidators: true}
-        );
+        await tweet.save()
 
-        return {message: "comment deleted successfully"}
     } catch (error) {
-        if(error instanceof NotFoundError || error instanceof BadRequestError || error instanceof UnauthorisedError) {
+        if(error instanceof NotFoundError || 
+           error instanceof UnauthorisedError) 
+        {
             throw error
         };
 
+
         logger.error(error);
-
         handleCommonErrors(error);
-
         throw error
+    }
+};
+
+// export async function replyToComment(tweetId, commentId, userId, body) {
+
+//     try {
+//         const updatedTweet = await Tweet.findOneAndUpdate(
+//             { _id: tweetId, "comments._id": new mongoose.Types.ObjectId(commentId) },
+//             { $push: { "comments.$.replies": { user: userId, text: body.trim() } } },
+//             { new: true }
+//         );
+
+//         if(!updatedTweet) {
+//             throw new NotFoundError("Tweet or Comment not found");
+//         }
+
+//         return updatedTweet;
+//     } catch (error) {
+//         if(error instanceof NotFoundError || error instanceof UnauthorisedError) {
+//             throw error;
+//         }
+//         logger.error(error);
+//         handleCommonErrors(error);
+//         throw error;
+//     }
+// }
+
+import mongoose from "mongoose";
+
+export async function replyToComment(tweetId, commentId, userId, body) {
+  try {
+    const updatedTweet = await Tweet.findOneAndUpdate(
+      {
+        _id: new mongoose.Types.ObjectId(tweetId),
+        "comments._id": new mongoose.Types.ObjectId(commentId),
+      },
+      {
+        $push: {
+          "comments.$.replies": {
+            user: new mongoose.Types.ObjectId(userId),
+            text: body.trim(),
+          },
+        },
+      },
+      { new: true }
+    );
+
+    if (!updatedTweet) {
+      throw new NotFoundError("Tweet or Comment not found");
+    }
+
+    return updatedTweet;
+  } catch (error) {
+    if (error instanceof NotFoundError || error instanceof UnauthorisedError) {
+      throw error;
+    }
+    logger.error(error);
+    handleCommonErrors(error);
+    throw error;
+  }
+}
+
+
+export async function toggleCommentLike(tweetId, commentId, userId) {
+    try {
+        const tweet = await Tweet.findOne({ _id: tweetId, "comments._id": commentId });
+        if (!tweet) throw new NotFoundError("Tweet or Comment not found");
+
+        const comment = tweet.comments.id(commentId);
+        if (!comment) throw new NotFoundError("Comment");
+
+        const alreadyLiked = comment.likes.some(id => id.toString() === userId.toString());
+
+        const updateOperation = alreadyLiked
+            ? { $pull: { "comments.$.likes": userId } }
+            : { $addToSet: { "comments.$.likes": userId } };
+
+        const updatedTweet = await Tweet.findOneAndUpdate(
+            { _id: tweetId, "comments._id": commentId },
+            updateOperation,
+            { new: true }
+        ).populate("comments.user", "displayName")
+         .populate("comments.likes", "displayName");
+
+        return {updatedTweet, liked: !alreadyLiked};
+    } catch (error) {
+        if (error instanceof NotFoundError || error instanceof UnauthorisedError) {
+            throw error;
+        }
+
+        logger.error(error);
+        handleCommonErrors(error);
+        throw error;
+    }
+}
+
+
+export async function softDeleteComment(tweetId, commentId, userId) {
+    try {
+        const tweet = await Tweet.findOne({ _id: tweetId, "comments._id": commentId });
+        if (!tweet) throw new NotFoundError("Tweet or Comment");
+
+        const comment = tweet.comments.id(commentId);
+        if (comment.user.toString() !== userId && tweet.author.toString() !== userId) {
+            throw new UnauthorisedError();
+        }
+
+        const updatedTweet = await Tweet.findOneAndUpdate(
+            { _id: tweetId, "comments._id": commentId },
+            {
+                $set: {
+                    "comments.$.isDeleted": true,
+                    "comments.$.status": "hidden",
+                    "comments.$.deletedAt": new Date()
+                }
+            },
+            { new: true }
+        ).populate("comments.user", "displayName");
+
+        return updatedTweet;
+    } catch (error) {
+        if (error instanceof NotFoundError || error instanceof UnauthorisedError || error instanceof BadRequestError) {
+            throw error;
+        }
+        logger.error(error);
+        handleCommonErrors(error);
+        throw error;
     }
 }

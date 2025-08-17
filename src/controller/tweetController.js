@@ -9,7 +9,11 @@ import {
   likeTweetService,
   unlikeTweetService,
   addCommentService,
-  deleteCommentService
+  deleteCommentService,
+  updateCommentService,
+  replyToCommentService,
+  toggleCommentLikeService,
+  softDeleteCommentService
 } from "../service/tweetService.js";
 
 import { errorResponce, successResponce } from "../utils/helpers/responses.js";
@@ -86,9 +90,13 @@ export const deleteTweet = async (req, res) => {
 // UPDATE TWEET
 export const updateTweet = async (req, res) => {
   try {
-    logger.info("UPDATE TWEET - req.body:", req.body);
 
-    const updatedTweet = await updateTweetService(req.params.id, req.body.tweet);
+    const tweetId = req.params.tweetId;
+    const body = req.body.tweet
+
+    logger.info("UPDATE TWEET - req.body:", body);
+
+    const updatedTweet = await updateTweetService(tweetId, body);
 
     if (!updatedTweet) {
       throw new NotFoundError("Tweet not found");
@@ -154,36 +162,82 @@ export const addCommentController = async(req, res) => {
   }
 };
 
-// export const deleteCommentController = async(req, res) =>{
+
+
+// export const deleteCommentController = async (req, res) => {
 //   try {
-//     const {tweetId, commentId} = req.params;
-//     logger.info("this is tweet id --->", tweetId)
+//     const { tweetId, commentId } = req.params;
 //     const userId = req.user.id;
 
 //     const deleteComment = await deleteCommentService(tweetId, commentId, userId);
 
-//     return successResponce(res, deleteComment, StatusCodes.OK, `Successfully deleted comment from tweet ${tweetId}`)
+//     return successResponce(
+//       res,
+//       deleteComment,
+//       StatusCodes.OK,
+//       `Successfully deleted comment from tweet ${tweetId}`
+//     );
 //   } catch (error) {
 //     logger.error(error);
-//     return errorResponce(res, error)
+//     return errorResponce(res, error);
 //   }
-// }
+// };
 
-export const deleteCommentController = async (req, res) => {
+export const updateCommentController = async (req, res) => {
   try {
-    const { tweetId, commentId } = req.params;
-    const userId = req.user.id;
+    const  {tweetId, commentId} = req.params;
+    const body= {text: req.body.text};
 
-    const deleteComment = await deleteCommentService(tweetId, commentId, userId);
+    const updateComment = await updateCommentService(tweetId, commentId, body);
 
-    return successResponce(
-      res,
-      deleteComment,
-      StatusCodes.OK,
-      `Successfully deleted comment from tweet ${tweetId}`
-    );
+    return successResponce(res, updateComment, StatusCodes.OK, `Successfully updated comment from tweet ${tweetId}`);
+    
   } catch (error) {
     logger.error(error);
-    return errorResponce(res, error);
+    return errorResponce(res, error)
+  }
+}
+
+export const replyToCommentController = async (req, res) => {
+  try {
+    const {tweetId, commentId } = req.params;
+    const userId = req.user.id;
+    const {text} = req.body;
+
+    const commentReply = await replyToCommentService(tweetId, commentId, userId, text);
+
+    return successResponce(res, commentReply, StatusCodes.OK, `Replied to comment ${commentId}`)
+  } catch (error) {
+    logger.error(error);
+    return errorResponce(res, error)
   }
 };
+
+export const toggleCommentLikeController = async(req, res) => {
+  try {
+    const {tweetId, commentId} = req.params;
+    const userId = req.user.id;
+
+    const commentLike = await toggleCommentLikeService(tweetId, commentId, userId);
+
+    return successResponce(res, commentLike, StatusCodes.OK, commentLike ?. liked ?? false ? "Liked" : "Unliked")
+  } catch (error) {
+    logger.error(error);
+    return errorResponce(res, error)
+  }
+}
+
+export const softDeleteCommentController = async(req, res) => {
+  try {
+    const {tweetId, commentId} = req.params;
+    const userId = req.user.id;
+
+    const softDelete = await softDeleteCommentService(tweetId, commentId, userId);
+    
+    return successResponce(res, softDelete, StatusCodes.OK, "Comment deleted")
+  } catch (error) {
+    logger.error(error);
+    return errorResponce(res, error)
+  }
+}
+

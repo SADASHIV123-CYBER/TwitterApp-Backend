@@ -32,7 +32,7 @@ export async function createTweet({ body, author }) {
     return tweet;
     
   } catch (error) {
-    if(error instanceof BadRequestError) {
+    if(error instanceof BadRequestError || error instanceof InternalServerError || error instanceof UnauthorisedError) {
       throw error;
     }
     logger.error(error);
@@ -60,7 +60,7 @@ export async function getTweetById(id) {
 
         return tweet;
     } catch (error) {
-        if (error instanceof NotFoundError) {
+        if (error instanceof NotFoundError || error instanceof BadRequestError || error instanceof UnauthorisedError) {
             throw error;
         }
 
@@ -80,7 +80,7 @@ export async function deleteTweet(id) {
 
         return response;
     } catch (error) {
-        if (error instanceof NotFoundError) {
+        if (error instanceof NotFoundError || error instanceof BadRequestError || error instanceof UnauthorisedError) {
             throw error;
         }
 
@@ -92,7 +92,9 @@ export async function deleteTweet(id) {
 
 export async function updateTweet(id, body) {
     try {
+
         const response = await updateTweetRepository(id, body);
+        logger.info(body)
 
         if (!response) {
             throw new NotFoundError('Tweet');
@@ -100,13 +102,14 @@ export async function updateTweet(id, body) {
 
         return response;
     } catch (error) {
-        if (error instanceof NotFoundError) {
+        if (error instanceof NotFoundError || error instanceof BadRequestError || error instanceof UnauthorisedError) {
             throw error;
         }
         
         logger.error(error)
 
         handleCommonErrors(error);
+        throw error
     }
 }
 
@@ -115,7 +118,7 @@ export async function likeTweetService(tweetId, userId) {
         return await tweetRepository.likeTweet(tweetId, userId);
 
     } catch (error) {
-        if(error instanceof NotFoundError || error instanceof BadRequestError) {
+        if(error instanceof NotFoundError || error instanceof BadRequestError || error instanceof UnauthorisedError) {
             throw error
         }
 
@@ -130,7 +133,7 @@ export async function unlikeTweetService(tweetId, userId) {
     try {
         return await tweetRepository.unlikeTweet(tweetId, userId);
     } catch (error) {
-        if(error instanceof NotFoundError || error instanceof BadRequestError) {
+        if(error instanceof NotFoundError || error instanceof BadRequestError || error instanceof UnauthorisedError) {
             throw error
         }
 
@@ -169,6 +172,75 @@ export async function deleteCommentService(tweetId, commentId, userId) {
         handleCommonErrors(error);
         
         throw error
+    }
+}
+
+export async function updateCommentService(tweetId, commentId, body) {
+    try {
+        return await tweetRepository.updateComment(tweetId, commentId, body);
+    } catch (error) {
+
+        if(error instanceof NotFoundError || error instanceof BadRequestError || error instanceof UnauthorisedError) {
+            throw error
+        }
+        
+        logger.error(error);
+
+        handleCommonErrors(error);
+
+        throw error
+    };
+}
+
+export async function replyToCommentService(tweetId, commentId, userId, body) {
+    try {
+        return await tweetRepository.replyToComment(tweetId, commentId, userId, body)
+    } catch (error) {
+
+        if(error instanceof NotFoundError || error instanceof BadRequestError || error instanceof UnauthorisedError) {
+            throw error
+        }
+        
+        logger.error(error);
+
+        handleCommonErrors(error);
+
+        throw error
+    }
+}
+export async function toggleCommentLikeService(tweetId, commentId, userId) {
+    try {
+        const { updatedTweet, liked } = await tweetRepository.toggleCommentLike(tweetId, commentId, userId);
+        return { updatedTweet, liked };
+    } catch (error) {
+        if (
+            error instanceof NotFoundError ||
+            error instanceof BadRequestError ||
+            error instanceof UnauthorisedError
+        ) {
+            throw error;
+        }
+
+        logger.error(error);
+        handleCommonErrors(error);
+        throw error;
+    }
+}
+
+
+export async function softDeleteCommentService(tweetId, commentId, userId) {
+    try {
+        return await tweetRepository.softDeleteComment(tweetId, commentId, userId);
+    } catch (error) {
+        if(error instanceof NotFoundError || error instanceof BadRequestError || error instanceof UnauthorisedError) {
+            throw error
+        }
+        
+        logger.error(error);
+
+        handleCommonErrors(error);
+
+        throw error     
     }
 }
 

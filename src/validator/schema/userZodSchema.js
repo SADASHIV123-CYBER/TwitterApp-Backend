@@ -31,6 +31,6 @@ export const userZodSchema = z.object({
     .optional(),
 
   role: z
-    .enum(["USER", "ADMIN"])
-    .default("USER")
+    .enum(["User", "Admin"])
+    .default("User")
 });
