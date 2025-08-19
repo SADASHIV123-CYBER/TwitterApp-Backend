@@ -13,7 +13,10 @@ import {
   updateCommentService,
   replyToCommentService,
   toggleCommentLikeService,
-  softDeleteCommentService
+  softDeleteCommentService,
+  retweetService,
+  quoteService,
+  deleteQuoteService
 } from "../service/tweetService.js";
 
 import { errorResponce, successResponce } from "../utils/helpers/responses.js";
@@ -240,4 +243,50 @@ export const softDeleteCommentController = async(req, res) => {
     return errorResponce(res, error)
   }
 }
+
+export const retweetController = async(req, res) => {
+  try {
+    const tweetId = req.params.tweetId;
+    const userId = req.user.id;
+
+    const retweet = await retweetService(tweetId, userId);
+
+    return successResponce(res, retweet, StatusCodes.OK, retweet.action === "done" ? "Retweet done!" : "Retweet undone");
+  } catch (error) {
+    logger.error(error);
+    return errorResponce(res, error)
+  }
+};
+
+export const quoteController = async(req, res) => {
+  try {
+    const tweetId = req.params.tweetId;
+    const userId = req.user.id;
+    const {text} = req.body;
+
+    const quote = await quoteService(tweetId, userId, text);
+    return successResponce(res, quote, StatusCodes.OK, "Tweet quoted");
+  } catch (error) {
+    logger.error(error);
+    return errorResponce(res, error)
+  }
+}
+
+export const deleteQuoteController = async(req, res) => {
+
+  try {
+
+  
+  const quoteId = req.params.quoteId;
+  const userId = req.user.id;
+
+  const quote = await deleteQuoteService(quoteId, userId);
+
+  return successResponce(res, quote, StatusCodes.OK, "Quote tweet deleted successfully");
+  } catch(error) {
+    logger.error(error); 
+    return errorResponce(res, error)
+  }
+}
+
 

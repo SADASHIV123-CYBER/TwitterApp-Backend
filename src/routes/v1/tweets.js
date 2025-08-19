@@ -1,5 +1,5 @@
 import express from 'express';
-import { addCommentController, createTweet, /*deleteCommentController,*/ deleteTweet, getTweetById, getTweets, likeTweetController, replyToCommentController, softDeleteCommentController, toggleCommentLikeController, unlikeTweetController, updateCommentController, updateTweet } from '../../controller/tweetController.js';
+import { addCommentController, createTweet, deleteQuoteController, /*deleteCommentController,*/ deleteTweet, getTweetById, getTweets, likeTweetController, quoteController, replyToCommentController, retweetController, softDeleteCommentController, toggleCommentLikeController, unlikeTweetController, updateCommentController, updateTweet } from '../../controller/tweetController.js';
 import { getTweetByIdManualValidator } from '../../validator/tweetManualValidator.js';
 import cloudinaryUploader from '../../middlewares/multerUploader.js';
 import { validate } from '../../validator/zodValidator.js';
@@ -7,6 +7,7 @@ import { tweetZodSchema } from '../../validator/schema/tweetZodSchema.js';
 import { isAdmin, isLoggedIn } from '../../middlewares/authMiddlewares.js';
 import { commentZodSchema } from '../../validator/schema/commentZodSchema.js';
 import { replyZodSchema } from '../../validator/schema/replyZodSchema.js';
+import { getQuoteByIdManualValidator } from '../../validator/quoteTweetManualValidator.js';
 
 const router = express.Router();
 
@@ -50,6 +51,7 @@ router.post(
   replyToCommentController
 );
 
+// this route is toggling like
 router.post(
   '/:tweetId/comments/:commentId/like',
   isLoggedIn,
@@ -64,6 +66,27 @@ router.delete(
   softDeleteCommentController
 );
 
+// this route is toggling retweet
+router.post(
+  '/:tweetId/retweet',
+  isLoggedIn,
+  getTweetByIdManualValidator,
+  retweetController
+)
+
+router.post(
+  '/:tweetId/quote',
+  isLoggedIn,
+  getTweetByIdManualValidator,
+  quoteController
+);
+
+router.delete(
+  '/:quoteId/quote',
+  isLoggedIn,
+  getQuoteByIdManualValidator,
+  deleteQuoteController
+);
 
 
 
