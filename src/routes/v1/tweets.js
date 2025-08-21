@@ -11,7 +11,7 @@ import { getQuoteByIdManualValidator } from '../../validator/quoteTweetManualVal
 
 const router = express.Router();
 
-router.get('/', getTweets);
+router.get('/', isLoggedIn, getTweets);
 
 router.post(
   '/',
