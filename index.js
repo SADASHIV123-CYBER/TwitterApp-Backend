@@ -16,6 +16,12 @@ app.use(morgan('dev'))
 
 app.use('/api', apiRouter)
 
+app.get('/ping', (req, res) => {
+    return res.json({
+        message: "pong"
+    })
+})
+
 app.listen(serverConfig.PORT, async () => {
     await connectDB();
     console.log(`Server started at port ${serverConfig.PORT}`);
