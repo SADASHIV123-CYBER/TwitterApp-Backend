@@ -76,6 +76,7 @@ router.post(
 
 router.post(
   '/:tweetId/quote',
+  cloudinaryUploader('quote').single('quoteImage'),
   isLoggedIn,
   getTweetByIdManualValidator,
   quoteController
@@ -84,6 +85,7 @@ router.post(
 router.delete(
   '/:quoteId/quote',
   isLoggedIn,
+  cloudinaryUploader('quote').single('quoteImage'),
   getQuoteByIdManualValidator,
   deleteQuoteController
 );

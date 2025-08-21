@@ -1,69 +1,65 @@
-// import User from "../schema/userSchema.js";
-// import handleCommonErrors from "../utils/errors/handleCommonErrors.js";
-// import NotFoundError from "../utils/errors/notFoundError.js";
-// import logger from "../utils/helpers/logger.js";
-
-// export async function createUser(userDetails) {
-//     try {
-//         const user = await User.create(userDetails);
-//         return user
-//     } catch (error) {
-//         logger.info(error)
-//         handleCommonErrors(error)
-//         throw error
-//     }
-// }
-
-// export async function findUser(parameters) {
-//     try {
-//         const user = await User.findOne({ ...parameters });
-//         if(!user) {
-//             throw new NotFoundError('User not found')
-//         }
-//         return user
-//     } catch (error) {
-//         if(error instanceof NotFoundError) {
-//             throw error
-//         }
-//         handleCommonErrors(error);
-
-//         throw error
-//     }
-// }
-
-import User from "../schema/userSchema.js";
-import handleCommonErrors from "../utils/errors/handleCommonErrors.js";
+import { Follow, User } from "../schema/userSchema.js";
+import BadRequestError from "../utils/errors/badRequestError.js";
+import { withErrorHandling } from "../utils/errors/errorHandlerUser.js";
+import NotFoundError from "../utils/errors/notFoundError.js";
 import logger from "../utils/helpers/logger.js";
 
-/**
- * Creates a new user in the database.
- * @param {Object} userDetails - The details of the user to create.
- * @returns {Promise<Object>} The created user object.
- */
-export async function createUser(userDetails) {
-    try {
-        const user = await User.create(userDetails);
-        return user;
-    } catch (error) {
-        logger.error(error);
-        handleCommonErrors(error);
-        throw error;
-    }
-}
 
-/**
- * Finds a user by the given parameters.
- * @param {Object} parameters - The query parameters (e.g., { email: "abc@example.com" }).
- * @returns {Promise<Object|null>} The found user object or null if not found.
- */
-export async function findUser(parameters) {
-    try {
-        const user = await User.findOne({ ...parameters });
-        // ✅ Return null instead of throwing so signup can proceed
-        return user || null;
-    } catch (error) {
-        logger.error(error);
-        handleCommonErrors(error);
-        throw error;
+
+export const createUser = withErrorHandling(async (userDetails) => {
+    const user = await User.create(userDetails);
+
+    if(!user) {
+        throw new BadRequestError()
     }
-}
+
+    return user;
+})
+
+
+export const findUser = withErrorHandling(async ({...parameters}) => {
+    const user = await User.findOne({...parameters}).lean();
+
+    // if(!user) {
+    //     throw new NotFoundError('User')
+    // }
+    return user || null
+});
+
+export const toggleFollow  = withErrorHandling(async (currentUserId, targetUserId) => {
+    
+    if(currentUserId.toString() === targetUserId.toString()) {
+        throw new BadRequestError("You can not follow your self")
+    }
+
+    const existingFollow  = await Follow.findOne({
+        follower: currentUserId,
+        following: targetUserId
+    });
+
+    let action
+
+    if(existingFollow ) {
+        await existingFollow.deleteOne();
+
+        action = "unfollowed"
+    }else {
+        await Follow.create({
+            follower: currentUserId,
+            following: targetUserId
+        });
+
+        action = "followed"
+    }
+    // return followDoc
+
+    const followerCount = await Follow.countDocuments({following: targetUserId})
+
+    const followingCount = await Follow.countDocuments({follower: targetUserId});
+
+    // const follower = await Follow.find({following: targetUserId}).populate("follower", "displayName");
+    // const following = await Follow.find({follower: targetUserId}).populate("following", "displayName")
+
+    return {followerCount, followingCount /*, follower, following*/};
+
+});

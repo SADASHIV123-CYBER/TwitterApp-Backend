@@ -5,7 +5,7 @@ import serverConfig from '../config/serverConfig.js'
 import UnauthorisedError from "../utils/errors/unauthorisedError.js";
 import logger from "../utils/helpers/logger.js";
 import InternalServerError from "../utils/errors/internalServerError.js";
-import User from "../schema/userSchema.js";
+import {User} from "../schema/userSchema.js";
 
 export async function isLoggedIn(req, res, next) {
     const token = req.cookies["authToken"];
@@ -21,7 +21,7 @@ export async function isLoggedIn(req, res, next) {
         //     throw new UnauthorisedError()
         // }
 
-        const user = await User.findById(decode.id)
+        const user = await User.findOne({email: decode.email})
 
         if(!user) {
             throw new UnauthorisedError()

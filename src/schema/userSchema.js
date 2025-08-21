@@ -1,5 +1,21 @@
 import mongoose from "mongoose";
 import bcrypt from 'bcrypt'
+ 
+const followSchema = new mongoose.Schema({
+    follower: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    },
+
+    following: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User", 
+        required: true
+    }
+})
+
+export const Follow = mongoose.model("Follow", followSchema)
 
 const userSchema = new mongoose.Schema({
     fullName: {
@@ -55,7 +71,6 @@ const userSchema = new mongoose.Schema({
         match: [/^[6-9]\d{9}$/, 'Please provide a valid 10-digit Indian mobile number'],
     },
 
-
     displayName: {
         type: String,
         default: function () {
@@ -80,6 +95,5 @@ userSchema.pre('save', async function (next) {
     }
 })
 
-const User = mongoose.model("User", userSchema);
+export const User = mongoose.model("User", userSchema);
 
-export default User;

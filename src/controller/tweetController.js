@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 import { StatusCodes } from "http-status-codes";
 import {
   createTweet as createTweetService,
@@ -9,7 +8,7 @@ import {
   likeTweetService,
   unlikeTweetService,
   addCommentService,
-  deleteCommentService,
+  /*deleteCommentService,*/
   updateCommentService,
   replyToCommentService,
   toggleCommentLikeService,
@@ -23,6 +22,7 @@ import { errorResponce, successResponce } from "../utils/helpers/responses.js";
 import BadRequestError from "../utils/errors/badRequestError.js";
 import NotFoundError from "../utils/errors/notFoundError.js";
 import logger from "../utils/helpers/logger.js";
+import { toggleFollowService } from "../service/userService.js";
 
 // CREATE TWEET
 export const createTweet = async (req, res) => {
@@ -262,7 +262,7 @@ export const quoteController = async(req, res) => {
   try {
     const tweetId = req.params.tweetId;
     const userId = req.user.id;
-    const {text} = req.body;
+    const {text} = req.body.text;
 
     const quote = await quoteService(tweetId, userId, text);
     return successResponce(res, quote, StatusCodes.OK, "Tweet quoted");
