@@ -5,23 +5,22 @@ import logger from "../utils/helpers/logger.js";
 import serverConfig from "../config/serverConfig.js";
 
 export async function login(req, res) {
-    try {
-        const loginPayload = req.body;
-        const token = await loginUser(loginPayload);
+  try {
+    const loginPayload = req.body;
+    const token = await loginUser(loginPayload);
 
-        // Set cookie
-        res.cookie("authToken", token, {
-        httpOnly: true,
-        secure: true, // must be true on HTTPS (Render is HTTPS)
-        sameSite: "None", // cross-site cookie allowed
-        maxAge: 24 * 60 * 60 * 1000,
-        path: "/",
-        });
+    // Cookie settings
+    res.cookie("authToken", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // only true in prod
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+      maxAge: 24 * 60 * 60 * 1000,
+      path: "/",
+    });
 
-
-        return successResponce(res, null, StatusCodes.OK, "User logged in successfully");
-    } catch (error) {
-        logger.error(error);
-        return errorResponce(res, error);
-    }
+    return successResponce(res, null, StatusCodes.OK, "User logged in successfully");
+  } catch (error) {
+    logger.error(error);
+    return errorResponce(res, error);
+  }
 }
