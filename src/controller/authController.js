@@ -36,14 +36,15 @@ export async function login(req, res) {
     try {
         const loginPayload = req.body;
 
-        const token = await loginUser(loginPayload);
-
         res.cookie("authToken", token, {
-            httpOnly: true,
-            secure: serverConfig.NODE_ENV === "production", // true only on Render/Prod
-            sameSite: "None", // IMPORTANT: required for cross-site cookies
-            maxAge: 24 * 60 * 60 * 1000, // 1 day
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production", // true in prod, false in dev
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        path: "/",
         });
+
+
+
 
         return successResponce(res, null, StatusCodes.OK, "logged in successfully");
     } catch (error) {
