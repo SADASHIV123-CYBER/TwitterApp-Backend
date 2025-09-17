@@ -81,15 +81,11 @@ import logger from "../utils/helpers/logger.js";
 import InternalServerError from "../utils/errors/internalServerError.js";
 import { User } from "../schema/userSchema.js";
 
-/**
- * Middleware to check if user is logged in
- * Supports token from cookie or Authorization header
- */
+
 export async function isLoggedIn(req, res, next) {
     // Try to get token from cookie first
     let token = req.cookies?.authToken;
 
-    // If no cookie, try Authorization header
     if (!token && req.headers.authorization?.startsWith("Bearer ")) {
         token = req.headers.authorization.split(" ")[1];
     }
@@ -119,9 +115,6 @@ export async function isLoggedIn(req, res, next) {
     }
 }
 
-/**
- * Middleware to check if user is Admin
- */
 export async function isAdmin(req, res, next) {
     try {
         const loggedInUser = req.user;

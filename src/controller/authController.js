@@ -12,12 +12,12 @@ export async function login(req, res) {
         const response = await loginUser(loginPayload);
 
         res.cookie("authToken", response, {
-            httpOnly: true,
-            // secure: false,
-            sameSite: "strict",
-            secure: serverConfig.NODE_ENV === "production",
-            maxAge: 24 * 60 * 60 * 1000
+        httpOnly: true,
+        secure: serverConfig.NODE_ENV === "production", // true on Render
+        sameSite: "None", // allow cross-site cookies
+        maxAge: 24 * 60 * 60 * 1000,
         });
+
 
         return successResponce(res, null, StatusCodes.OK, "logged in successfully");
     } catch (error) {
