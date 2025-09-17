@@ -11,12 +11,13 @@ export async function login(req, res) {
 
         // Set cookie
         res.cookie("authToken", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production", // HTTPS only in production
-            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-            path: "/",
-            maxAge: 24 * 60 * 60 * 1000, // 1 day
+        httpOnly: true,
+        secure: true, // must be true on HTTPS (Render is HTTPS)
+        sameSite: "None", // cross-site cookie allowed
+        maxAge: 24 * 60 * 60 * 1000,
+        path: "/",
         });
+
 
         return successResponce(res, null, StatusCodes.OK, "User logged in successfully");
     } catch (error) {
