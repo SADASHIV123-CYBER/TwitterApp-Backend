@@ -1,73 +1,142 @@
+// import { StatusCodes } from "http-status-codes";
+// import { errorResponce } from "../utils/helpers/responses.js";
+// import jwt from "jsonwebtoken";
+// import serverConfig from '../config/serverConfig.js'
+// import UnauthorisedError from "../utils/errors/unauthorisedError.js";
+// import logger from "../utils/helpers/logger.js";
+// import InternalServerError from "../utils/errors/internalServerError.js";
+// import {User} from "../schema/userSchema.js";
+
+// export async function isLoggedIn(req, res, next) {
+//     const token = req.cookies["authToken"];
+
+//     if(!token) {
+//         return errorResponce(res, /*{status: StatusCodes.UNAUTHORIZED, message: "No Auth Token provided"}*/ new UnauthorisedError())
+//     }
+
+//     try {
+//         const decode = jwt.verify(token, serverConfig.JWT_SECRET);
+
+//         // if(!decode) {
+//         //     throw new UnauthorisedError()
+//         // }
+
+//         const user = await User.findOne({email: decode.email})
+
+//         if(!user) {
+//             throw new UnauthorisedError()
+//         }
+
+
+//         // req.user = {
+//         //     email: decode.email,
+//         //     id: decode.id,
+//         //     role: decode.role
+//         // }
+
+//         req.user = user;
+
+
+//         next()
+//     } catch (error) {
+//         logger.error("auth error ---->", error);
+
+//         if(error.name === "JsonWebTokenError" || error.name === "TokenExpiredError") {
+//             return errorResponce(res, new UnauthorisedError("Invalid or expired token"));
+//         }
+//         return errorResponce(res, new InternalServerError())
+//     }
+// }
+
+// export async function isAdmin(req, res, next) {
+//     try {
+//         const loggedInUser = req.user;
+
+//         if(!loggedInUser) {
+//             return errorResponce(res, new UnauthorisedError())
+//         }
+
+//         if(loggedInUser.role === "Admin") {
+//             return next();
+//         }
+
+//         return errorResponce(res,  new UnauthorisedError()
+//             // {
+//             //     status: StatusCodes.UNAUTHORIZED, message: "You are not authorized for this action"
+//             // }
+//         );
+//     } catch (error) {
+//         logger.error(error);
+
+//         return errorResponce(res, new InternalServerError());
+//     }
+// }
+
 import { StatusCodes } from "http-status-codes";
 import { errorResponce } from "../utils/helpers/responses.js";
 import jwt from "jsonwebtoken";
-import serverConfig from '../config/serverConfig.js'
+import serverConfig from '../config/serverConfig.js';
 import UnauthorisedError from "../utils/errors/unauthorisedError.js";
 import logger from "../utils/helpers/logger.js";
 import InternalServerError from "../utils/errors/internalServerError.js";
-import {User} from "../schema/userSchema.js";
+import { User } from "../schema/userSchema.js";
 
+/**
+ * Middleware to check if user is logged in
+ * Supports token from cookie or Authorization header
+ */
 export async function isLoggedIn(req, res, next) {
-    const token = req.cookies["authToken"];
+    // Try to get token from cookie first
+    let token = req.cookies?.authToken;
 
-    if(!token) {
-        return errorResponce(res, /*{status: StatusCodes.UNAUTHORIZED, message: "No Auth Token provided"}*/ new UnauthorisedError())
+    // If no cookie, try Authorization header
+    if (!token && req.headers.authorization?.startsWith("Bearer ")) {
+        token = req.headers.authorization.split(" ")[1];
+    }
+
+    if (!token) {
+        return errorResponce(res, new UnauthorisedError("No Auth Token provided"));
     }
 
     try {
         const decode = jwt.verify(token, serverConfig.JWT_SECRET);
 
-        // if(!decode) {
-        //     throw new UnauthorisedError()
-        // }
-
-        const user = await User.findOne({email: decode.email})
-
-        if(!user) {
-            throw new UnauthorisedError()
+        const user = await User.findOne({ email: decode.email });
+        if (!user) {
+            throw new UnauthorisedError("User not found");
         }
-
-
-        // req.user = {
-        //     email: decode.email,
-        //     id: decode.id,
-        //     role: decode.role
-        // }
 
         req.user = user;
 
-
-        next()
+        next();
     } catch (error) {
         logger.error("auth error ---->", error);
 
-        if(error.name === "JsonWebTokenError" || error.name === "TokenExpiredError") {
+        if (error.name === "JsonWebTokenError" || error.name === "TokenExpiredError") {
             return errorResponce(res, new UnauthorisedError("Invalid or expired token"));
         }
-        return errorResponce(res, new InternalServerError())
+        return errorResponce(res, new InternalServerError());
     }
 }
 
+/**
+ * Middleware to check if user is Admin
+ */
 export async function isAdmin(req, res, next) {
     try {
         const loggedInUser = req.user;
 
-        if(!loggedInUser) {
-            return errorResponce(res, new UnauthorisedError())
+        if (!loggedInUser) {
+            return errorResponce(res, new UnauthorisedError("User not logged in"));
         }
 
-        if(loggedInUser.role === "Admin") {
+        if (loggedInUser.role === "Admin") {
             return next();
         }
 
-        return errorResponce(res,  new UnauthorisedError()
-            // {
-            //     status: StatusCodes.UNAUTHORIZED, message: "You are not authorized for this action"
-            // }
-        );
+        return errorResponce(res, new UnauthorisedError("You are not authorized for this action"));
     } catch (error) {
         logger.error(error);
-
         return errorResponce(res, new InternalServerError());
     }
 }
