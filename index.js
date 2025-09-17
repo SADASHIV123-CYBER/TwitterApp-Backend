@@ -9,22 +9,11 @@ import cookieParser from 'cookie-parser';
 const app = express();
 
 // Allowed frontend URLs
-const allowedOrigins = [
-    "http://localhost:5173",
-    "https://yourfrontend.onrender.com" // production frontend
-];
-
-// Enable CORS
 app.use(cors({
-    origin: function(origin, callback) {
-        if (!origin) return callback(null, true); // allow REST clients like Postman
-        if (allowedOrigins.indexOf(origin) === -1) {
-            return callback(new Error("Not allowed by CORS"), false);
-        }
-        return callback(null, true);
-    },
-    credentials: true, // allow cookies
+  origin: 'http://localhost:5173', // frontend dev URL
+  credentials: true,               // important for cookies
 }));
+
 
 app.use(cookieParser());
 app.use(express.json());
