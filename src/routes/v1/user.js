@@ -15,18 +15,15 @@ router.post(
   createUser
 );
 
-// Toggle follow/unfollow
 router.post("/follow/:targetUser/toggle", isLoggedIn, toggleFollowController);
 
-// Get profile of a specific user by ID
 router.get("/:userId", isLoggedIn, getUserProfile);
 
-// ✅ New route to get currently logged-in user
 router.get("/me", isLoggedIn, async (req, res) => {
   try {
     return res.status(200).json({
       success: true,
-      data: req.user, // comes from isLoggedIn middleware
+      data: req.user, 
     });
   } catch (error) {
     return res.status(500).json({ success: false, message: "Server error" });
