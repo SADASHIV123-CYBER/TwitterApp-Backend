@@ -3,7 +3,7 @@ import { v2 as cloudinary } from "cloudinary";
 import BadRequestError from "../utils/errors/badRequestError.js";
 import NotFoundError from "../utils/errors/notFoundError.js";  // ✅ Added
 import { withErrorHandling } from "../utils/errors/errorHandlerUser.js";
-import { User } from "../schema/userSchema.js";
+import { Follow, User } from "../schema/userSchema.js";
 
 export const registerUser = withErrorHandling(async (userDetails) => {
   let profilePicture = null;
@@ -56,8 +56,23 @@ export const toggleFollowService = withErrorHandling(async (currentUserId, targe
   return await toggleFollow(currentUserId, targetUserId);
 });
 
+// export const getUserProfileService = withErrorHandling(async (userId) => {
+//   const user = await User.findById(userId).select("-password").lean();
+//   if (!user) throw new NotFoundError("User not found");  // ✅ Safe now
+//   return user;
+// });
+
 export const getUserProfileService = withErrorHandling(async (userId) => {
   const user = await User.findById(userId).select("-password").lean();
-  if (!user) throw new NotFoundError("User not found");  // ✅ Safe now
-  return user;
+  if (!user) throw new NotFoundError("User not found");
+
+  // Get follower and following counts
+  const followerCount = await Follow.countDocuments({ following: userId });
+  const followingCount = await Follow.countDocuments({ follower: userId });
+
+  return {
+    ...user,
+    followerCount,
+    followingCount
+  };
 });
