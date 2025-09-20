@@ -67,14 +67,52 @@ export const unlikeTweet = async (tweetId, userId) => {
   return updated;
 };
 
+// export const addComment = withErrorHandling(async (tweetId, userId, text) => {
+//   const newComment = { user: userId, text: text.trim(), createdAt: new Date() };
+//   const updatedTweet = await Tweet.findByIdAndUpdate(
+//     tweetId,
+//     { $push: { comments: newComment } },
+//     { new: true, runValidators: true }
+//   ).populate("comments.user", "displayName profilePicture");
+//   if (!updatedTweet) throw new NotFoundError("Tweet");
+//   return updatedTweet;
+// });
+
 export const addComment = withErrorHandling(async (tweetId, userId, text) => {
-  const newComment = { user: userId, text: text.trim(), createdAt: new Date() };
+  // Validate ObjectId
+  if (!mongoose.Types.ObjectId.isValid(tweetId)) {
+    throw new NotFoundError("Tweet");
+  }
+
+  const trimmedText = text?.trim();
+  if (!trimmedText) {
+    throw new Error("Comment text cannot be empty");
+  }
+
+  // Try to find the tweet
+  const tweet = await Tweet.findById(tweetId);
+  if (!tweet) {
+    throw new NotFoundError("Tweet");
+  }
+
+  const newComment = {
+    user: userId,
+    text: trimmedText,
+    createdAt: new Date(),
+  };
+
+  // Update: push the comment
   const updatedTweet = await Tweet.findByIdAndUpdate(
     tweetId,
     { $push: { comments: newComment } },
     { new: true, runValidators: true }
   ).populate("comments.user", "displayName profilePicture");
-  if (!updatedTweet) throw new NotFoundError("Tweet");
+
+  if (!updatedTweet) {
+    // This is unlikely if tweet was found above, but safe check
+    throw new NotFoundError("Tweet");
+  }
+
   return updatedTweet;
 });
 

@@ -58,9 +58,18 @@ export const unlikeTweet = withErrorHandling(async (tweetId, userId) => {
   return await tweetRepository.unlikeTweet(tweetId, userId);
 });
 
+// export const addComment = withErrorHandling(async (tweetId, userId, text) => {
+//   return await tweetRepository.addComment(tweetId, userId, text);
+// });
+
+// In tweetService file
+
 export const addComment = withErrorHandling(async (tweetId, userId, text) => {
+  // Optionally log incoming values
+  console.log("Service: addComment", { tweetId, userId, text });
   return await tweetRepository.addComment(tweetId, userId, text);
 });
+
 
 export const updateComment = withErrorHandling(async (tweetId, commentId, body) => {
   return await tweetRepository.updateComment(tweetId, commentId, body);

@@ -89,16 +89,39 @@ export const unlikeTweetController = async (req, res) => {
   }
 };
 
+// export const addCommentController = async (req, res) => {
+//   try {
+//     const { id: tweetId } = req.params;
+//     const userId = req.user.id;
+//     const { text } = req.body;
+//     const addComment = await tweetService.addComment(tweetId, userId, text);
+//     return successResponce(res, addComment, StatusCodes.OK, `Successfully posted comment on tweet ${tweetId}`);
+//   } catch (error) {
+//     logger.error(error);
+//     return errorResponce(res, error);
+//   }
+// };
+
 export const addCommentController = async (req, res) => {
   try {
     const { id: tweetId } = req.params;
     const userId = req.user.id;
     const { text } = req.body;
-    const addComment = await tweetService.addComment(tweetId, userId, text);
-    return successResponce(res, addComment, StatusCodes.OK, `Successfully posted comment on tweet ${tweetId}`);
+
+    const addedCommentTweet = await tweetService.addComment(tweetId, userId, text);
+    return successResponce(res, addedCommentTweet, StatusCodes.OK, `Successfully posted comment on tweet ${tweetId}`);
   } catch (error) {
-    logger.error(error);
-    return errorResponce(res, error);
+    logger.error("addCommentController error", error);
+    // If it's NotFoundError, send 404
+    if (error instanceof NotFoundError) {
+      return res.status(StatusCodes.NOT_FOUND).json({ success: false, message: error.message });
+    }
+    // For validation / bad input
+    if (error.message && (error.message.includes("empty") || error.message.includes("Invalid"))) {
+      return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: error.message });
+    }
+    // Fallback
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ success: false, message: error.message || "Internal Server Error" });
   }
 };
 
