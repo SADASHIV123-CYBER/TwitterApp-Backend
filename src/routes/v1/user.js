@@ -1,7 +1,7 @@
 import express from "express";
 import { validate } from "../../validator/zodValidator.js";
 import { userZodSchema } from "../../validator/schema/userZodSchema.js";
-import { createUser, toggleFollowController, getUserProfile } from "../../controller/userController.js";
+import { createUser, toggleFollowController, getUserProfile, getFollowingController, getFollowersController } from "../../controller/userController.js";
 import cloudinaryUploader from "../../middlewares/multerUploader.js";
 import { isLoggedIn } from "../../middlewares/authMiddlewares.js";
 
@@ -30,4 +30,12 @@ router.get("/me", isLoggedIn, async (req, res) => {
   }
 });
 
+router.get("/:userId/followers", isLoggedIn, getFollowersController);
+router.get("/:userId/following", isLoggedIn, getFollowingController);
+
+
+
 export default router;
+
+
+
