@@ -1,95 +1,66 @@
-import express from 'express';
-import { addCommentController, createTweet, deleteQuoteController, /*deleteCommentController,*/ deleteTweet, getTweetById, getTweets, likeTweetController, quoteController, replyToCommentController, retweetController, softDeleteCommentController, toggleCommentLikeController, unlikeTweetController, updateCommentController, updateTweet } from '../../controller/tweetController.js';
-import { getTweetByIdManualValidator } from '../../validator/tweetManualValidator.js';
-import cloudinaryUploader from '../../middlewares/multerUploader.js';
-import { validate } from '../../validator/zodValidator.js';
-import { tweetZodSchema } from '../../validator/schema/tweetZodSchema.js';
-import { isAdmin, isLoggedIn } from '../../middlewares/authMiddlewares.js';
-import { commentZodSchema } from '../../validator/schema/commentZodSchema.js';
-import { replyZodSchema } from '../../validator/schema/replyZodSchema.js';
-import { getQuoteByIdManualValidator } from '../../validator/quoteTweetManualValidator.js';
+import express from "express";
+import {
+  addCommentController,
+  createTweet,
+  deleteQuoteController,
+  deleteTweet,
+  getTweetById,
+  getTweets,
+  likeTweetController,
+  quoteController,
+  replyToCommentController,
+  retweetController,
+  softDeleteCommentController,
+  toggleCommentLikeController,
+  unlikeTweetController,
+  updateCommentController,
+  updateTweet,
+  getUserTweets,
+  getUserRetweets,
+  getUserQuotes,
+} from "../../controller/tweetController.js";
+import { getTweetByIdManualValidator } from "../../validator/tweetManualValidator.js";
+import cloudinaryUploader from "../../middlewares/multerUploader.js";
+import { validate } from "../../validator/zodValidator.js";
+import { tweetZodSchema } from "../../validator/schema/tweetZodSchema.js";
+import { isLoggedIn } from "../../middlewares/authMiddlewares.js";
+import { commentZodSchema } from "../../validator/schema/commentZodSchema.js";
+import { replyZodSchema } from "../../validator/schema/replyZodSchema.js";
+import { getQuoteByIdManualValidator } from "../../validator/quoteTweetManualValidator.js";
 
 const router = express.Router();
 
-router.get('/', isLoggedIn, getTweets);
+router.get("/", isLoggedIn, getTweets);
+router.post("/", isLoggedIn, cloudinaryUploader("tweets").single("tweetImage"), validate(tweetZodSchema), createTweet);
 
-router.post(
-  '/',
-  isLoggedIn,
-  cloudinaryUploader('tweets').single('tweetImage'),
-  validate(tweetZodSchema),
-  createTweet
-);
+router.get("/user/:userId", isLoggedIn, getUserTweets);
+router.get("/user/:userId/retweets", isLoggedIn, getUserRetweets);
+router.get("/user/:userId/quotes", isLoggedIn, getUserQuotes);
 
-router.delete('/:id', isLoggedIn, getTweetByIdManualValidator, deleteTweet);
+router.post("/:tweetId/comments", isLoggedIn, getTweetByIdManualValidator, validate(commentZodSchema), addCommentController);
+router.post("/:id/comment", isLoggedIn, getTweetByIdManualValidator, validate(commentZodSchema), addCommentController);
 
-router.get('/:id', isLoggedIn, getTweetByIdManualValidator, getTweetById);
+router.put("/:tweetId/comments/:commentId", isLoggedIn, getTweetByIdManualValidator, updateCommentController);
+router.put("/:tweetId/comment/:commentId", isLoggedIn, getTweetByIdManualValidator, updateCommentController);
 
-router.put('/:id', isLoggedIn, getTweetByIdManualValidator, validate(tweetZodSchema), updateTweet );
+router.post("/:tweetId/comments/:commentId/replies", isLoggedIn, getTweetByIdManualValidator, validate(replyZodSchema), replyToCommentController);
 
-router.post('/:id/like', isLoggedIn, getTweetByIdManualValidator, likeTweetController)
+router.post("/:tweetId/comments/:commentId/like", isLoggedIn, getTweetByIdManualValidator, toggleCommentLikeController);
+router.post("/:tweetId/comment/:commentId/like", isLoggedIn, getTweetByIdManualValidator, toggleCommentLikeController);
 
-router.post('/:id/unlike', isLoggedIn, getTweetByIdManualValidator, unlikeTweetController)
+router.delete("/:tweetId/comments/:commentId/soft", isLoggedIn, getTweetByIdManualValidator, softDeleteCommentController);
+router.delete("/:tweetId/comment/:commentId/soft", isLoggedIn, getTweetByIdManualValidator, softDeleteCommentController);
 
-router.post('/:id/comment', isLoggedIn, getTweetByIdManualValidator,validate(commentZodSchema), addCommentController);
+router.post("/:tweetId/retweet", isLoggedIn, getTweetByIdManualValidator, retweetController);
+router.post("/:tweetId/quote", isLoggedIn, getTweetByIdManualValidator, cloudinaryUploader("quote").single("quoteImage"), quoteController);
+router.delete("/:quoteId/quote", isLoggedIn, getQuoteByIdManualValidator, deleteQuoteController);
+router.delete("/quote/:quoteId", isLoggedIn, getQuoteByIdManualValidator, deleteQuoteController);
 
-// router.delete('/:tweetId/comment/:commentId', 
-//   isLoggedIn, 
-//   getTweetByIdManualValidator, 
-//   deleteCommentController
-// );
+router.get("/:id", isLoggedIn, getTweetById);
+router.put("/:id", isLoggedIn, getTweetByIdManualValidator, validate(tweetZodSchema), updateTweet);
+router.delete("/:id", isLoggedIn, getTweetByIdManualValidator, deleteTweet);
 
-router.put('/:tweetId/comment/:commentId', isLoggedIn, getTweetByIdManualValidator, updateCommentController)
-
-
-// router.post('/:tweetId/comments/:commentId/replies', isLoggedIn, validate(tweetZodSchema), getTweetByIdManualValidator, replyToCommentController)
-router.post(
-  '/:tweetId/comments/:commentId/replies',
-  isLoggedIn,
-  getTweetByIdManualValidator,
-  validate(replyZodSchema),
-  replyToCommentController
-);
-
-// this route is toggling like
-router.post(
-  '/:tweetId/comments/:commentId/like',
-  isLoggedIn,
-  getTweetByIdManualValidator,
-  toggleCommentLikeController
-);
-
-router.delete(
-  '/:tweetId/comment/:commentId/soft',
-  isLoggedIn,
-  getTweetByIdManualValidator,
-  softDeleteCommentController
-);
-
-// this route is toggling retweet
-router.post(
-  '/:tweetId/retweet',
-  isLoggedIn,
-  getTweetByIdManualValidator,
-  retweetController
-)
-
-router.post(
-  '/:tweetId/quote',
-  cloudinaryUploader('quote').single('quoteImage'),
-  isLoggedIn,
-  getTweetByIdManualValidator,
-  quoteController
-);
-
-router.delete(
-  '/:quoteId/quote',
-  isLoggedIn,
-  cloudinaryUploader('quote').single('quoteImage'),
-  getQuoteByIdManualValidator,
-  deleteQuoteController
-);
-
-
+router.post("/:id/like", isLoggedIn, getTweetByIdManualValidator, likeTweetController);
+router.post("/:id/unlike", isLoggedIn, getTweetByIdManualValidator, unlikeTweetController);
 
 export default router;
