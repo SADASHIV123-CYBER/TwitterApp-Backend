@@ -1,14 +1,12 @@
 import { createUser, findUser, toggleFollow } from "../repository/userRepository.js";
 import { v2 as cloudinary } from "cloudinary";
 import BadRequestError from "../utils/errors/badRequestError.js";
-import NotFoundError from "../utils/errors/notFoundError.js";  // ✅ Added
+import NotFoundError from "../utils/errors/notFoundError.js";
 import { withErrorHandling } from "../utils/errors/errorHandlerUser.js";
 import { Follow, User } from "../schema/userSchema.js";
 
 export const registerUser = withErrorHandling(async (userDetails) => {
   let profilePicture = null;
-
-  // ✅ Corrected uniqueness check
   const existingUser = await User.findOne({
     $or: [
       { email: userDetails.email },
@@ -16,16 +14,13 @@ export const registerUser = withErrorHandling(async (userDetails) => {
       { mobileNumber: userDetails.mobileNumber }
     ]
   });
-
   if (existingUser) {
     throw new BadRequestError("User is already registered with given email, username, or mobile number");
   }
-
   if (userDetails.imagePath) {
     const cloudinaryResponse = await cloudinary.uploader.upload(userDetails.imagePath);
     profilePicture = cloudinaryResponse.secure_url;
   }
-
   const {
     fullName,
     userName,
@@ -36,7 +31,6 @@ export const registerUser = withErrorHandling(async (userDetails) => {
     displayName,
     mobileNumber
   } = userDetails;
-
   const newUser = await createUser({
     fullName,
     userName,
@@ -48,7 +42,6 @@ export const registerUser = withErrorHandling(async (userDetails) => {
     displayName,
     mobileNumber
   });
-
   return newUser;
 });
 
@@ -56,23 +49,20 @@ export const toggleFollowService = withErrorHandling(async (currentUserId, targe
   return await toggleFollow(currentUserId, targetUserId);
 });
 
-// export const getUserProfileService = withErrorHandling(async (userId) => {
-//   const user = await User.findById(userId).select("-password").lean();
-//   if (!user) throw new NotFoundError("User not found");  // ✅ Safe now
-//   return user;
-// });
-
-export const getUserProfileService = withErrorHandling(async (userId) => {
+export const getUserProfileService = withErrorHandling(async (userId, currentUserId = null) => {
   const user = await User.findById(userId).select("-password").lean();
   if (!user) throw new NotFoundError("User not found");
-
-  // Get follower and following counts
   const followerCount = await Follow.countDocuments({ following: userId });
   const followingCount = await Follow.countDocuments({ follower: userId });
-
+  let isFollowed = false;
+  if (currentUserId) {
+    const f = await Follow.findOne({ follower: currentUserId, following: userId });
+    isFollowed = Boolean(f);
+  }
   return {
     ...user,
     followerCount,
-    followingCount
+    followingCount,
+    isFollowed
   };
 });

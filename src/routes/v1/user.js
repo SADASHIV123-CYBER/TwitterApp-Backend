@@ -7,7 +7,6 @@ import { isLoggedIn } from "../../middlewares/authMiddlewares.js";
 
 const router = express.Router();
 
-// Create a new user
 router.post(
   "/",
   cloudinaryUploader("profile").single("profilePicture"),
@@ -16,6 +15,7 @@ router.post(
 );
 
 router.post("/follow/:targetUser/toggle", isLoggedIn, toggleFollowController);
+router.post("/follow/:targetUser", isLoggedIn, toggleFollowController);
 
 router.get("/:userId", isLoggedIn, getUserProfile);
 
@@ -23,7 +23,7 @@ router.get("/me", isLoggedIn, async (req, res) => {
   try {
     return res.status(200).json({
       success: true,
-      data: req.user, 
+      data: req.user,
     });
   } catch (error) {
     return res.status(500).json({ success: false, message: "Server error" });

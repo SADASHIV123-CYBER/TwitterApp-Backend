@@ -5,9 +5,7 @@ import NotFoundError from "../utils/errors/notFoundError.js";
 
 export const createUser = withErrorHandling(async (userDetails) => {
   const user = await User.create(userDetails);
-  if (!user) {
-    throw new BadRequestError();
-  }
+  if (!user) throw new BadRequestError();
   return user;
 });
 
@@ -17,13 +15,13 @@ export const findUser = withErrorHandling(async ({ ...parameters }) => {
 });
 
 export const toggleFollow = withErrorHandling(async (currentUserId, targetUserId) => {
-  if (String(currentUserId) === String(targetUserId)) {
+  if (currentUserId.toString() === targetUserId.toString()) {
     throw new BadRequestError("You can not follow your self");
   }
 
   const existingFollow = await Follow.findOne({
     follower: currentUserId,
-    following: targetUserId
+    following: targetUserId,
   });
 
   let action;
@@ -34,7 +32,7 @@ export const toggleFollow = withErrorHandling(async (currentUserId, targetUserId
   } else {
     await Follow.create({
       follower: currentUserId,
-      following: targetUserId
+      following: targetUserId,
     });
     action = "followed";
   }
