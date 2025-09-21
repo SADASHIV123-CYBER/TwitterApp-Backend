@@ -2,10 +2,6 @@ import * as tweetRepository from '../repository/tweetRepository.js';
 import { withErrorHandling } from '../utils/errors/errorHandler.js';
 import { Follow } from '../schema/userSchema.js';
 
-export const createTweet = withErrorHandling(async ({ body, author, image }) => {
-  return await tweetRepository.createTweet({ body, author, image });
-});
-
 const markIsFollowed = async (doc, viewerId) => {
   if (!viewerId) return doc;
   if (!doc) return doc;
@@ -13,12 +9,16 @@ const markIsFollowed = async (doc, viewerId) => {
   if (!author) return doc;
   const authorId = author._id ?? author;
   const exists = await Follow.exists({ follower: viewerId, following: authorId });
-  if (doc.author && typeof doc.author === 'object') doc.author = { ...doc.author.toObject ? doc.author.toObject() : doc.author, isFollowed: !!exists };
+  if (doc.author && typeof doc.author === 'object') doc.author = { ...(doc.author.toObject ? doc.author.toObject() : doc.author), isFollowed: !!exists };
   if (doc.originalTweet && doc.originalTweet.author && typeof doc.originalTweet.author === 'object') {
-    doc.originalTweet.author = { ...doc.originalTweet.author.toObject ? doc.originalTweet.author.toObject() : doc.originalTweet.author, isFollowed: !!exists };
+    doc.originalTweet.author = { ...(doc.originalTweet.author.toObject ? doc.originalTweet.author.toObject() : doc.originalTweet.author), isFollowed: !!exists };
   }
   return doc;
 };
+
+export const createTweet = withErrorHandling(async ({ body, author, image }) => {
+  return await tweetRepository.createTweet({ body, author, image });
+});
 
 export const getTweets = withErrorHandling(async (viewerId) => {
   const tweets = await tweetRepository.getTweets();
@@ -58,18 +58,9 @@ export const unlikeTweet = withErrorHandling(async (tweetId, userId) => {
   return await tweetRepository.unlikeTweet(tweetId, userId);
 });
 
-// export const addComment = withErrorHandling(async (tweetId, userId, text) => {
-//   return await tweetRepository.addComment(tweetId, userId, text);
-// });
-
-// In tweetService file
-
 export const addComment = withErrorHandling(async (tweetId, userId, text) => {
-  // Optionally log incoming values
-  console.log("Service: addComment", { tweetId, userId, text });
   return await tweetRepository.addComment(tweetId, userId, text);
 });
-
 
 export const updateComment = withErrorHandling(async (tweetId, commentId, body) => {
   return await tweetRepository.updateComment(tweetId, commentId, body);

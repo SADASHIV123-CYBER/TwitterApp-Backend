@@ -1,7 +1,7 @@
 import { StatusCodes } from "http-status-codes";
 import * as tweetService from "../service/tweetService.js";
-import { errorResponce, successResponce } from "../utils/helpers/responses.js";
 import NotFoundError from "../utils/errors/notFoundError.js";
+import { errorResponce, successResponce } from "../utils/helpers/responses.js";
 import logger from "../utils/helpers/logger.js";
 import { withErrorHandling } from "../utils/errors/errorHandler.js";
 
@@ -16,7 +16,7 @@ export const createTweet = async (req, res) => {
     return successResponce(res, tweet, StatusCodes.CREATED, "Tweet created successfully");
   } catch (err) {
     logger.error("Tweet create error", err);
-    return res.status(500).json({ success: false, message: err.message || "Internal Server Error" });
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ success: false, message: err.message || "Internal Server Error" });
   }
 };
 
@@ -67,10 +67,10 @@ export const updateTweet = async (req, res) => {
 
 export const likeTweetController = async (req, res) => {
   try {
-    const { id: tweetId } = req.params;
+    const tweetId = req.params.id;
     const userId = req.user.id;
-    const likeTweet = await tweetService.likeTweet(tweetId, userId);
-    return successResponce(res, likeTweet, StatusCodes.OK, `Liked tweet ${tweetId}`);
+    const liked = await tweetService.likeTweet(tweetId, userId);
+    return successResponce(res, liked, StatusCodes.OK, `Liked tweet ${tweetId}`);
   } catch (error) {
     logger.error(error);
     return errorResponce(res, error);
@@ -79,48 +79,31 @@ export const likeTweetController = async (req, res) => {
 
 export const unlikeTweetController = async (req, res) => {
   try {
-    const { id: tweetId } = req.params;
+    const tweetId = req.params.id;
     const userId = req.user.id;
-    const unlikeTweet = await tweetService.unlikeTweet(tweetId, userId);
-    return successResponce(res, unlikeTweet, StatusCodes.OK, `Unliked tweet ${tweetId}`);
+    const unliked = await tweetService.unlikeTweet(tweetId, userId);
+    return successResponce(res, unliked, StatusCodes.OK, `Unliked tweet ${tweetId}`);
   } catch (error) {
     logger.error(error);
     return errorResponce(res, error);
   }
 };
 
-// export const addCommentController = async (req, res) => {
-//   try {
-//     const { id: tweetId } = req.params;
-//     const userId = req.user.id;
-//     const { text } = req.body;
-//     const addComment = await tweetService.addComment(tweetId, userId, text);
-//     return successResponce(res, addComment, StatusCodes.OK, `Successfully posted comment on tweet ${tweetId}`);
-//   } catch (error) {
-//     logger.error(error);
-//     return errorResponce(res, error);
-//   }
-// };
-
 export const addCommentController = async (req, res) => {
   try {
-    const { id: tweetId } = req.params;
+    const tweetId = req.params.tweetId || req.params.id;
     const userId = req.user.id;
     const { text } = req.body;
-
     const addedCommentTweet = await tweetService.addComment(tweetId, userId, text);
     return successResponce(res, addedCommentTweet, StatusCodes.OK, `Successfully posted comment on tweet ${tweetId}`);
   } catch (error) {
     logger.error("addCommentController error", error);
-    // If it's NotFoundError, send 404
     if (error instanceof NotFoundError) {
       return res.status(StatusCodes.NOT_FOUND).json({ success: false, message: error.message });
     }
-    // For validation / bad input
     if (error.message && (error.message.includes("empty") || error.message.includes("Invalid"))) {
       return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: error.message });
     }
-    // Fallback
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ success: false, message: error.message || "Internal Server Error" });
   }
 };
@@ -129,8 +112,8 @@ export const updateCommentController = async (req, res) => {
   try {
     const { tweetId, commentId } = req.params;
     const body = { text: req.body.text };
-    const updateComment = await tweetService.updateComment(tweetId, commentId, body);
-    return successResponce(res, updateComment, StatusCodes.OK, `Successfully updated comment from tweet ${tweetId}`);
+    const updatedComment = await tweetService.updateComment(tweetId, commentId, body);
+    return successResponce(res, updatedComment, StatusCodes.OK, `Successfully updated comment from tweet ${tweetId}`);
   } catch (error) {
     logger.error(error);
     return errorResponce(res, error);
@@ -166,8 +149,8 @@ export const softDeleteCommentController = async (req, res) => {
   try {
     const { tweetId, commentId } = req.params;
     const userId = req.user.id;
-    const softDelete = await tweetService.softDeleteComment(tweetId, commentId, userId);
-    return successResponce(res, softDelete, StatusCodes.OK, "Comment deleted");
+    const softDeleted = await tweetService.softDeleteComment(tweetId, commentId, userId);
+    return successResponce(res, softDeleted, StatusCodes.OK, "Comment deleted");
   } catch (error) {
     logger.error(error);
     return errorResponce(res, error);
@@ -203,8 +186,8 @@ export const deleteQuoteController = async (req, res) => {
   try {
     const quoteId = req.params.quoteId;
     const userId = req.user.id;
-    const quote = await tweetService.deleteQuote(quoteId, userId);
-    return successResponce(res, quote, StatusCodes.OK, "Quote tweet deleted successfully");
+    const deleted = await tweetService.deleteQuote(quoteId, userId);
+    return successResponce(res, deleted, StatusCodes.OK, "Quote tweet deleted successfully");
   } catch (error) {
     logger.error(error);
     return errorResponce(res, error);
@@ -213,15 +196,15 @@ export const deleteQuoteController = async (req, res) => {
 
 export const getUserTweets = withErrorHandling(async (req, res) => {
   const tweets = await tweetService.getUserTweets(req.params.userId, req.user?.id);
-  res.status(200).json(tweets);
+  res.status(StatusCodes.OK).json({ success: true, data: tweets });
 });
 
 export const getUserRetweets = withErrorHandling(async (req, res) => {
   const retweets = await tweetService.getUserRetweets(req.params.userId, req.user?.id);
-  res.status(200).json(retweets);
+  res.status(StatusCodes.OK).json({ success: true, data: retweets });
 });
 
 export const getUserQuotes = withErrorHandling(async (req, res) => {
   const quotes = await tweetService.getUserQuotes(req.params.userId, req.user?.id);
-  res.status(200).json(quotes);
+  res.status(StatusCodes.OK).json({ success: true, data: quotes });
 });

@@ -38,29 +38,29 @@ router.get("/user/:userId/retweets", isLoggedIn, getUserRetweets);
 router.get("/user/:userId/quotes", isLoggedIn, getUserQuotes);
 
 router.post("/:tweetId/comments", isLoggedIn, getTweetByIdManualValidator, validate(commentZodSchema), addCommentController);
-router.post("/:id/comment", isLoggedIn, getTweetByIdManualValidator, validate(commentZodSchema), addCommentController);
 
 router.put("/:tweetId/comments/:commentId", isLoggedIn, getTweetByIdManualValidator, updateCommentController);
-router.put("/:tweetId/comment/:commentId", isLoggedIn, getTweetByIdManualValidator, updateCommentController);
 
 router.post("/:tweetId/comments/:commentId/replies", isLoggedIn, getTweetByIdManualValidator, validate(replyZodSchema), replyToCommentController);
 
 router.post("/:tweetId/comments/:commentId/like", isLoggedIn, getTweetByIdManualValidator, toggleCommentLikeController);
-router.post("/:tweetId/comment/:commentId/like", isLoggedIn, getTweetByIdManualValidator, toggleCommentLikeController);
 
 router.delete("/:tweetId/comments/:commentId/soft", isLoggedIn, getTweetByIdManualValidator, softDeleteCommentController);
-router.delete("/:tweetId/comment/:commentId/soft", isLoggedIn, getTweetByIdManualValidator, softDeleteCommentController);
 
 router.post("/:tweetId/retweet", isLoggedIn, getTweetByIdManualValidator, retweetController);
+
 router.post("/:tweetId/quote", isLoggedIn, getTweetByIdManualValidator, cloudinaryUploader("quote").single("quoteImage"), quoteController);
+
 router.delete("/:quoteId/quote", isLoggedIn, getQuoteByIdManualValidator, deleteQuoteController);
-router.delete("/quote/:quoteId", isLoggedIn, getQuoteByIdManualValidator, deleteQuoteController);
 
 router.get("/:id", isLoggedIn, getTweetById);
+
 router.put("/:id", isLoggedIn, getTweetByIdManualValidator, validate(tweetZodSchema), updateTweet);
+
 router.delete("/:id", isLoggedIn, getTweetByIdManualValidator, deleteTweet);
 
 router.post("/:id/like", isLoggedIn, getTweetByIdManualValidator, likeTweetController);
+
 router.post("/:id/unlike", isLoggedIn, getTweetByIdManualValidator, unlikeTweetController);
 
 export default router;
