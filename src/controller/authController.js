@@ -11,18 +11,23 @@ export async function login(req, res) {
 
     const isProd = process.env.NODE_ENV === 'production';
 
+    // For local dev: httpOnly true, secure false, sameSite 'Lax'
+    // For production: httpOnly true, secure true, sameSite 'None' (required for cross-site)
     const cookieOptions = {
       httpOnly: true,
-      secure: isProd, // secure must be true for SameSite=None in browsers
-      sameSite: isProd ? 'None' : 'Lax', // None for cross-site in production
-      maxAge: 24 * 60 * 60 * 1000,
+      secure: isProd, // true only in production
+      sameSite: isProd ? 'None' : 'Lax', // None + secure required for cross-site cookies
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
       path: '/',
     };
 
-    // Optional: if you need cookie to be valid for a specific domain (e.g. .yourdomain.com)
-    if (process.env.COOKIE_DOMAIN) {
+    // ONLY set domain if explicitly provided and not 'localhost'
+    if (process.env.COOKIE_DOMAIN && process.env.COOKIE_DOMAIN !== 'localhost') {
       cookieOptions.domain = process.env.COOKIE_DOMAIN; // e.g. ".example.com"
     }
+
+    // Debug: log cookie options in server logs (remove later)
+    logger.info('Setting auth cookie with options:', cookieOptions);
 
     res.cookie('authToken', token, cookieOptions);
 
