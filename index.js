@@ -21,11 +21,16 @@ app.use((req, res, next) => {
   next();
 });
 
-// CORS - dev frontend
-app.use(cors({
-  origin: 'http://localhost:5173', // your frontend dev URL
-  credentials: true,               // allow cookies
-}));
+// ✅ Fixed CORS (allow cookies + headers)
+app.use(
+  cors({
+    origin: ['http://localhost:5173'], // frontend dev URL
+    credentials: true, // allow cookies across origins
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['Set-Cookie'],
+  })
+);
 
 app.use(cookieParser());
 app.use(express.json());
@@ -38,11 +43,13 @@ app.use('/api', apiRouter);
 
 // Health check
 app.get('/ping', (req, res) => {
-  return res.json({ message: "pong" });
+  return res.json({ message: 'pong' });
 });
 
 // Start server
 app.listen(serverConfig.PORT, async () => {
   await connectDB();
-  console.log(`Server started at port ${serverConfig.PORT}  NODE_ENV=${process.env.NODE_ENV}`);
+  console.log(
+    `Server started at port ${serverConfig.PORT}  NODE_ENV=${process.env.NODE_ENV}`
+  );
 });
