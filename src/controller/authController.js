@@ -14,7 +14,7 @@ export async function login(req, res) {
     const cookieOptions = {
       httpOnly: true,
       secure: isProd,          // ✅ must be true in production
-      sameSite: isProd ? 'None' : 'Lax', // ✅ None required for cross-site
+      sameSite: 'None', // ✅ None required for cross-site
       maxAge: 24 * 60 * 60 * 1000, // 1 day
       path: '/',
     };
