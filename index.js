@@ -42,15 +42,14 @@ app.use((req, res, next) => {
 app.use(
   cors({
     origin: (origin, callback) => {
-      // allow non-browser tools (no origin)
       if (!origin) return callback(null, true);
       if (originIsAllowed(origin)) return callback(null, true);
       return callback(new Error(`Not allowed by CORS: ${origin}`));
     },
-    credentials: true,
+    credentials: true,             // ✅ required to send cookies
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    exposedHeaders: ['Set-Cookie'],
+    exposedHeaders: ['Set-Cookie'], // ✅ expose Set-Cookie for debugging if needed
   })
 );
 
