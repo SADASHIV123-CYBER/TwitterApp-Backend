@@ -8,16 +8,18 @@ export async function login(req, res) {
   try {
     const loginPayload = req.body;
     const token = await loginUser(loginPayload);
+const isProd = process.env.NODE_ENV === 'production';
 
-    const isProd = process.env.NODE_ENV === 'production';
 
-    const cookieOptions = {
-      httpOnly: true,
-      secure: isProd,          // ✅ must be true in production
-      sameSite: 'None', // ✅ None required for cross-site
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-      path: '/',
-    };
+const cookieOptions = {
+  httpOnly: true,
+  secure: isProd,              // ✅ true in production
+  sameSite: isProd ? 'None' : 'Lax', // ✅ None for cross-origin
+  maxAge: 24 * 60 * 60 * 1000,
+  path: '/',
+};
+
+
 
     if (process.env.COOKIE_DOMAIN && process.env.COOKIE_DOMAIN !== 'localhost') {
       cookieOptions.domain = process.env.COOKIE_DOMAIN;
